@@ -1,0 +1,209 @@
+\documentclass[letterpaper,12pt]{article}
+
+\usepackage{amsmath,amsfonts,mathtools}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{float}
+
+% For displaying code
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+\definecolor{orangered}{rgb}{1,0.27,0}
+
+% Settings for displaying code
+\lstset{%
+  language=bash,
+  aboveskip=3mm,
+  belowskip=3mm,
+  basicstyle={\small\ttfamily},
+  commentstyle=\color{dkgreen},
+  frame=single,
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  stringstyle=\color{mauve},
+  keywordstyle=\color{orangered},
+  emphstyle=\color{blue},
+  showstringspaces=false,
+  otherkeywords={=, +, [, ], (, ), \{, \}, *},
+  % bash commands from:
+  %http://www.math.montana.edu/Rweb/Rhelp/00Index.html
+  emph={addgroup,adduser,alias,
+  ant,
+  apropos,apt-get,aptitude,aspell,awk,
+  basename,bash,bc,bg,borgbackup,break,builtin,bzip2,cal,case,cat,cd,cfdisk,chgrp,
+  chkconfig,chmod,chown,chroot,cksum,clear,cmake,cmp,comm,command,continue,convert,
+  cp,cron,crontab,csplit,curl,cut,date,dc,dd,ddrescue,declare,df,diff,diff3,
+  dig,dir,dircolors,dirname,dirs,dmesg,dstat,dtrace,dtruss,du,echo,egrep,eject,enable,env,
+  ethtool,eval,exec,exit,expand,expect,export,expr,false,fdformat,
+  fdisk,ffmpeg,fg,fgrep,file,find,fmt,fold,for,format,free,fsck,ftp,function,
+  fuser,gawk,getopts,
+  git,gocryptfs,
+  grep,groups,gzip,
+  gunzip,
+  ,hash,head,help,history,hostname,htop,hyperfine,
+  id,if,ifconfig,ifdown,ifup,import,install,iotop,ip,
+  java, java6, java_cur
+  join,journalctl,jq,jupyter,notebook,kbfs,kernprof,kill,killall,less,
+  let,ln,lnav,local,locate,logger,log,show,logname,logout,look,lpc,lpr,lprint,lprintd,
+  lprintq,lprm,ls,lsof,lstat,make,man,mkdir,mkfifo,mkisofs,mknod,mmv,more,mosh,
+  mount,mtools,mtr,mv,mypy,
+  mysql,ncdu,nethog,
+  netstat,nice,nl,nohup,notify-send,
+  noweb,noweave,
+  nslookup,op,
+  open,passwd,paste,pathchk,pdflatex,perf,pgrep,ping,pkill,popd,pr,printcap,printenv,
+  printf,ps,pushd,pwd,pyflakes,python, python3,quota,quotacheck,quotactl,ram,rclone,rcp,read,
+  readarray,readonly,reboot,remsync,rename,renice,return,rev,rg,rm,rmdir,
+  rsync,rustup,scp,screen,sdiff,sed,select,seq,set,sftp,sha1sum,shellcheck,shift,shopt,shutdown,
+  sleep,slocate,sort,source,split,ss,ssh,sshfs,strace,su,sudo,sum,
+  svn, svn2git,
+  symlink,sync,systemctl,
+  tail,tar,tcpdump,tee,test,time,times,tldr,tmux,top,touch,tr,traceroute,trap,tree,true,
+  tsort,tty,type,ulimit,umask,umount,unalias,uname,unexpand,uniq,
+  units,
+  unrar,
+  unset,unshar,until,useradd,usermod,users,uudecode,uuencode,vagrant,valgrind,
+  vdir,version,vi,vmstat,watch,wc,wget,whereis,which,while,who,whoami,write,xargs, xdg,
+  zcat,zsh},
+}
+
+% Display tildes nicely
+\lstset{
+    literate={~} {$\sim$}{1}
+}
+
+\newcommand*{\lstitem}[1]{
+  \setbox0\hbox{\lstinline{#1}}
+  \item[\usebox0]
+}
+
+% Personal definitions
+\newcommand{\lra}{\ensuremath{\longrightarrow{}}}
+\newcommand{\vect}[1]{\mathbf{#1}}
+\renewcommand{\qedsymbol}{\rule{0.7em}{0.7em}}
+\newcommand{\tabitem}{~~\llap{\textbullet}~~}
+
+% Theorem commands
+\newtheorem{lem}{Lemma}
+\newtheorem{thm}{Theorem}
+\newtheorem{defn}{Definition}
+
+% Set spacing
+\setenumerate{itemsep=1.5pt,parsep=1.5pt,topsep=0.5pt}
+\setlist{itemsep=1.5pt,parsep=1.5pt,leftmargin=1pt}
+\setitemize{itemsep=1.5pt,parsep=1.5pt,topsep=0.5pt}
+
+% set 1" margins on 8.5" x 11" paper
+% top left is measured from 1", 1"
+\topmargin       0in
+\oddsidemargin   0in
+\evensidemargin  0in
+\headheight      0in
+\headsep         0in
+\topskip         0in
+\textheight      9in
+\textwidth       6.5in
+
+\begin{document}
+\title{CS131 Notes}
+\author{Sean Wu}
+\date{\today}
+\maketitle
+
+\tableofcontents
+
+\pagebreak
+
+% set spacing
+\setlength{\parindent}{0em}
+\setlength{\parskip}{1em}
+
+\section{Introduction}
+\subsection{What is Computer Vision and why is it hard}
+
+\begin{description}
+ \item[Computer Vision]: extracting info from digital images OR developing algorithms to understand image content for other applications
+\end{description}
+\begin{itemize}
+ \item Computer Vision is a hard interdisciplinary problem that is still unsolved
+       \begin{itemize}
+        \item Hard to convert data storing RGB values in many pixels to semantic info (ex. this blob of black pixels is a chair)
+       \end{itemize}
+ \item Vision (extracting meaningful info) is harder than 3D modelling
+\end{itemize}
+
+\subsection{Definition of Vision and Comparisons to Human Vision}
+\begin{description}
+ \item[sensing device]: captures details from a scene
+ \item[interpreting device]: processes image from sensing device to extract meaning
+\end{description}
+
+\begin{itemize}
+ \item Humans use eyes as sensing devices while computers use cameras
+ \item For sensing devices, computer vision is actually better than human vision because cameras can see infrared, have longer range, and capture greater detail
+ \item For interpreting devices, the human brain is way more advanced than computer systems
+\end{itemize}
+
+\subsection{Human Vision Strengths and Weaknesses}
+\begin{itemize}
+ \item Human vision evolved to quickly recognize danger for survival
+ \item It is very fast \lra $\sim150$ ms to recognize an animal
+ \item For speed, humans \textit{focus} only on "relevant" \textit{areas of interest}
+ \item Thus, small signals/changes in the background can be difficult to detect and segment
+ \item Humans also use \textit{context} to infer clues
+       \begin{itemize}
+        \item Used to determine next area of focus, when to expect certain objects in certain positions, and colour compensation in shadows
+        \item However, context can be used to trick human vision
+       \end{itemize}
+ \item Context is very hard to include in computer vision
+\end{itemize}
+
+\subsection{Extracting info from images}
+
+\begin{itemize}
+ \item 2 types of info extracted in computer vision: \textbf{measurements} and \textbf{semantic info}
+\end{itemize}
+
+\subsubsection{Measurement in Vision}
+\begin{itemize}
+ \item Robots scan surroundings to make a map of its environment
+ \item Stereo vision gives depth information (like 2 eyes) using triangulation
+       \begin{itemize}
+        \item Depth info represented as a depth map
+       \end{itemize}
+ \item With multiple viewpoints of an object, a 3D surface can be created (or even a 3D model)
+\end{itemize}
+
+\subsubsection{Obtaining Semantic Info from Vision}
+\begin{itemize}
+ \item Labelling objects (or scene)
+ \item Recognizing people, actions, gestures, faces
+\end{itemize}
+
+\subsection{Applications of Computer Vision}
+\begin{itemize}
+ \item Video special effects
+ \item 3D object modelling
+ \item Scene recognition
+ \item Face detection
+       \begin{itemize}
+        \item Note: face recognition is harder than face detection
+       \end{itemize}
+ \item Optical Character Recognition (OCR)
+ \item Reverse image search
+ \item Vision based interaction (ex. Microsoft Kinect)
+ \item Augmented reality
+ \item Virtual reality
+\end{itemize}
+
+
+
+
+
+\end{document}
