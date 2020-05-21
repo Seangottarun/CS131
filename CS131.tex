@@ -2,6 +2,7 @@
 
 \usepackage{amsmath,amsfonts,mathtools}
 \usepackage{amsthm}
+\usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{enumitem}
@@ -17,61 +18,7 @@
 \definecolor{orangered}{rgb}{1,0.27,0}
 
 % Settings for displaying code
-\lstset{%
-  language=bash,
-  aboveskip=3mm,
-  belowskip=3mm,
-  basicstyle={\small\ttfamily},
-  commentstyle=\color{dkgreen},
-  frame=single,
-  numbers=none,
-  numberstyle=\tiny\color{gray},
-  stringstyle=\color{mauve},
-  keywordstyle=\color{orangered},
-  emphstyle=\color{blue},
-  showstringspaces=false,
-  otherkeywords={=, +, [, ], (, ), \{, \}, *},
-  % bash commands from:
-  %http://www.math.montana.edu/Rweb/Rhelp/00Index.html
-  emph={addgroup,adduser,alias,
-  ant,
-  apropos,apt-get,aptitude,aspell,awk,
-  basename,bash,bc,bg,borgbackup,break,builtin,bzip2,cal,case,cat,cd,cfdisk,chgrp,
-  chkconfig,chmod,chown,chroot,cksum,clear,cmake,cmp,comm,command,continue,convert,
-  cp,cron,crontab,csplit,curl,cut,date,dc,dd,ddrescue,declare,df,diff,diff3,
-  dig,dir,dircolors,dirname,dirs,dmesg,dstat,dtrace,dtruss,du,echo,egrep,eject,enable,env,
-  ethtool,eval,exec,exit,expand,expect,export,expr,false,fdformat,
-  fdisk,ffmpeg,fg,fgrep,file,find,fmt,fold,for,format,free,fsck,ftp,function,
-  fuser,gawk,getopts,
-  git,gocryptfs,
-  grep,groups,gzip,
-  gunzip,
-  ,hash,head,help,history,hostname,htop,hyperfine,
-  id,if,ifconfig,ifdown,ifup,import,install,iotop,ip,
-  java, java6, java_cur
-  join,journalctl,jq,jupyter,notebook,kbfs,kernprof,kill,killall,less,
-  let,ln,lnav,local,locate,logger,log,show,logname,logout,look,lpc,lpr,lprint,lprintd,
-  lprintq,lprm,ls,lsof,lstat,make,man,mkdir,mkfifo,mkisofs,mknod,mmv,more,mosh,
-  mount,mtools,mtr,mv,mypy,
-  mysql,ncdu,nethog,
-  netstat,nice,nl,nohup,notify-send,
-  noweb,noweave,
-  nslookup,op,
-  open,passwd,paste,pathchk,pdflatex,perf,pgrep,ping,pkill,popd,pr,printcap,printenv,
-  printf,ps,pushd,pwd,pyflakes,python, python3,quota,quotacheck,quotactl,ram,rclone,rcp,read,
-  readarray,readonly,reboot,remsync,rename,renice,return,rev,rg,rm,rmdir,
-  rsync,rustup,scp,screen,sdiff,sed,select,seq,set,sftp,sha1sum,shellcheck,shift,shopt,shutdown,
-  sleep,slocate,sort,source,split,ss,ssh,sshfs,strace,su,sudo,sum,
-  svn, svn2git,
-  symlink,sync,systemctl,
-  tail,tar,tcpdump,tee,test,time,times,tldr,tmux,top,touch,tr,traceroute,trap,tree,true,
-  tsort,tty,type,ulimit,umask,umount,unalias,uname,unexpand,uniq,
-  units,
-  unrar,
-  unset,unshar,until,useradd,usermod,users,uudecode,uuencode,vagrant,valgrind,
-  vdir,version,vi,vmstat,watch,wc,wget,whereis,which,while,who,whoami,write,xargs, xdg,
-  zcat,zsh},
-}
+\lstset{language=python}
 
 % Display tildes nicely
 \lstset{
@@ -86,8 +33,17 @@
 % Personal definitions
 \newcommand{\lra}{\ensuremath{\longrightarrow{}}}
 \newcommand{\vect}[1]{\mathbf{#1}}
+\newcommand{\matr}[1]{\mathbf{#1}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\abs}[1]{\lvert#1\rvert}
+\newcommand*{\vertbar}{\rule[-1ex]{0.5pt}{2.5ex}} % for complicated matrices
+\newcommand*{\horzbar}{\rule[.5ex]{2.5ex}{0.5pt}}
 \renewcommand{\qedsymbol}{\rule{0.7em}{0.7em}}
 \newcommand{\tabitem}{~~\llap{\textbullet}~~}
+
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\diag}{diag}
 
 % Theorem commands
 \newtheorem{lem}{Lemma}
@@ -200,6 +156,1152 @@
  \item Vision based interaction (ex. Microsoft Kinect)
  \item Augmented reality
  \item Virtual reality
+\end{itemize}
+
+\section{Linear Algebra Review}
+\subsection{Vectors}
+\begin{itemize}
+ \item a \textit{column vector} $\vect{v} \in \mathbb{R}^{n \times 1}$ where
+       \begin{align}
+        \vect{v} & = \begin{bmatrix}
+         v_{1}  \\
+         v_{2}  \\
+         \vdots \\
+         v_{n}
+        \end{bmatrix}
+       \end{align}
+ \item a \textit{row vector} $\vect{v}^T \in \mathbb{R}^{1 \times n}$ where
+       \begin{align}
+        \vect{v}^T = \begin{bmatrix}
+         v_1 & v_2 & \dots & v_n
+        \end{bmatrix}
+       \end{align}
+\end{itemize}
+
+\begin{itemize}
+ \item The transpose of a matrix/vector is denoted with a subscript $T$
+ \item Note: with \lstinline{numpy} in \lstinline{python}, you can transpose a vector \lstinline{v} with \lstinline{v.T}
+\end{itemize}
+
+\begin{itemize}
+ \item In 2D and 3D, vectors have a geometric interpretation as points
+ \item Can also use vectors to represent pixels, gradients at an image keypoint, etc
+ \item In this use case, vectors do not have a geometric interpretation, but calculations like "distance" are still useful
+       \begin{itemize}
+        \item The distance measures "similarity" between 2 vectors
+       \end{itemize}
+\end{itemize}
+
+\subsection{Matrix}
+\begin{itemize}
+ \item A \textit{matrix} $\matr{A} \in \mathbb{R}^{m \times n}$ is an array of numbers with size $m$ by $n$
+ \item i.e. $m$ rows and $n$ columns
+       \begin{align}
+        \matr{A} & =\begin{bmatrix}
+         a_{11} & a_{12} & a_{13} & \dots  & a_{1n} \\
+         a_{21} & a_{22} & a_{23} & \dots  & a_{2n} \\
+         \vdots & \vdots & \vdots & \ddots & \vdots \\
+         a_{d1} & a_{d2} & a_{d3} & \dots  & a_{dn}
+        \end{bmatrix}
+       \end{align}
+ \item if $m=n$, we say that $\matr{A}$ is square
+\end{itemize}
+
+\subsubsection{Images}
+\begin{itemize}
+ \item Python represents an \textit{image} as a matrix of pixel brightnesses
+ \item Note: the upper left corner has indices $\underbrace{[x,y]}_\text{row, column} = (0,0)$
+       \begin{itemize}
+        \item Python indices start at 0
+        \item MATLAB indices start at 1
+       \end{itemize}
+ \item Images can be also be represented as a vector of pixels by stacking rows into a single tall column vector
+\end{itemize}
+
+\begin{description}
+ \item[grayscale image]: 1 number per pixel; stored as a $m \times n$ matrix
+ \item[color image]: 3 numbers per pixel \lra red, green, blue brightnesses (RGB); stored as a $m \times n \times 3$ matrix
+\end{description}
+
+\subsection{Basic Matrix Operations}
+\subsubsection{Addition}
+\begin{align}
+ \begin{bmatrix}
+  a & b \\
+  c & d
+ \end{bmatrix}
+ + \begin{bmatrix}
+  1 & 2 \\
+  3 & 4
+ \end{bmatrix}
+ = \begin{bmatrix}
+  a + 1 & b + 2 \\
+  c + 3 & d + 4
+ \end{bmatrix}
+\end{align}
+\begin{itemize}
+ \item Can only add matrices with matching dimensions or a scalar
+\end{itemize}
+
+\subsubsection{Scaling}
+\begin{align}
+ \begin{bmatrix}
+  a & b \\
+  c & d
+ \end{bmatrix}
+ * 3
+ = \begin{bmatrix}
+  3a & 3b \\
+  3c & 3d
+ \end{bmatrix}
+\end{align}
+
+\subsubsection{Vector Norms}
+\paragraph{$\ell_1$ Norm - Manhattan Norm} $\norm{\vect{x}}_1 = \sum\limits^{n}\limits_{i=1} \abs{x_1}$
+\paragraph{$\ell_2$ Norm - Euclidean Norm} $\norm{\vect{x}}_2 =  \sqrt{\sum\limits^{n}\limits_{i=1} x^2_i}$
+\paragraph{$\ell_\infty$ Norm - Max Norm} $\norm{\vect{x}}_\infty = \max_i \abs{x_i}$
+\paragraph{$\ell_p$ Norm} $\norm{\vect{x}}_p =  \bigg(\sum\limits^{n}\limits_{i=1} x^p_i \bigg)^\frac{1}{p}$
+\paragraph{Matrix Norm} $\norm{\matr{A}}_F = \sqrt{\sum\limits^{m}\limits_{i=1} \sum\limits^{n}\limits_{j=1} A^2_{ij}} = \sqrt{\tr(\matr{A}^T \matr{A})}$
+
+\begin{itemize}
+ \item Note: a matrix norm is a vector norm in a vector space whose elements (vectors) are matrices (of a given dimension)
+\end{itemize}
+
+\begin{itemize}
+ \item Formally, a \textbf{norm} is any $f: \mathbb{R}^n \to \mathbb{R}$ that satisfies these 4 properties
+       \begin{enumerate}
+        \item \textbf{Non-negativity}: $\forall \vect{x} \in \mathbb{R}^n, f(\vect{x}) \geq 0$
+        \item \textbf{Definiteness}: $f(\vect{x}) = 0 \iff \vect{x} = \begin{bmatrix}
+                0 & 0 & \dots & 0
+               \end{bmatrix}$
+        \item \textbf{Homogeneity}: $\forall \vect{x} \in \mathbb{R}^n, t \in \mathbb{R}, f(t\vect{x}) = \abs{t}f(\vect{x})$
+        \item \textbf{Triangle Inequality}: $\forall \vect{x}, \vect{y} \in \mathbb{R}^n, f(\vect{x}+\vect{y}) \leq f(\vect{x}) + f(\vect{y})$
+       \end{enumerate}
+\end{itemize}
+
+\subsubsection{Inner Product (Dot Product)}
+\begin{itemize}
+ \item The \textbf{inner product (dot product)} $\vect{x} \cdot \vect{y}$ or $\vect{x}^T \vect{y}$ is calculated by multiplying the corresponding entries of 2 vectors and adding up the result
+ \item Note: the inner product takes 2 vectors as input and outputs a single scalar
+       \begin{align}
+        \vect{x} \cdot \vect{y} & = \abs{\vect{x}}\abs{\vect{y}}\cos(\theta) \\
+        \vect{x}^T \vect{y}     & = \vect{x} \cdot \vect{y} =
+        \begin{bmatrix}
+         x_1 & x_2 & \dots & x_n
+        \end{bmatrix}
+        \begin{bmatrix}
+         y_{1}  \\
+         y_{2}  \\
+         \vdots \\
+         y_{n}
+        \end{bmatrix}
+        = \sum\limits^{n}\limits_{i=1} x_i y_i
+       \end{align}
+\end{itemize}
+
+\begin{itemize}
+ \item if $\vect{y}$ is a unit vector, then $\vect{x} \cdot \vect{y} = \abs{\vect{x}}\cos(\theta)$ gives the length of $\vect{x}$ which lies in the direction of $\vect{y}$
+\end{itemize}
+
+\subsection{Matrix Multiplication}
+\begin{itemize}
+ \item Inner dimensions of matrices must match
+ \item For $\matr{A} \in \mathbb{R}^{m \times n}$ and $\matr{B} \in \mathbb{R}^{n \times p}$, the product $\matr{C} = \matr{A} \matr{B} \in \mathbb{R}^{m \times p}$ where $\matr{C}_{ij} = \sum\limits^{n}\limits_{k=1} A_{ik}B_{kj}$
+       \begin{align}
+        \matr{C} = \matr{A}\matr{B} =  \begin{bmatrix}
+         \horzbar & a_{1}^{T} & \horzbar \\
+         \horzbar & a_{2}^{T} & \horzbar \\
+                  & \vdots    &          \\
+         \horzbar & a_{m}^{T} & \horzbar
+        \end{bmatrix}
+        \begin{bmatrix}
+         \vertbar & \vertbar &       & \vertbar \\
+         b_{1}    & b_{2}    & \dots & b_{p}    \\
+         \vertbar & \vertbar &       & \vertbar
+        \end{bmatrix}
+        =
+        \begin{bmatrix}
+         a_{1}^{T}b_{1} & a_{1}^{T}b_{2} & \dots  & a_{1}^{T}b_{p} \\
+         a_{2}^{T}b_{1} & a_{2}^{T}b_{2} & \dots  & a_{2}^{T}b_{p} \\
+         \vdots         & \vdots         & \ddots & \vdots         \\
+         a_{m}^{T}b_{1} & a_{m}^{T}b_{2} & \dots  & a_{m}^{T}b_{p}
+        \end{bmatrix}
+       \end{align}
+ \item i.e. matrix multiplication gives a matrix where the entries are the dot product of the rows of A and columns B
+\end{itemize}
+
+\subsubsection{Properties of Matrix Multiplication}
+\begin{enumerate}
+ \item \textbf{Associative}:   $(\matr{A}\matr{B})\matr{C} = \matr{A}(\matr{B}\matr{C})$
+ \item \textbf{Distributive}: $\matr{A}(\matr{B} + \matr{C}) = \matr{A}\matr{B} + \matr{A}\matr{C}$
+ \item \textbf{Not Commutative}: Generally, $\matr{A}\matr{B} \neq \matr{B}\matr{A}$
+       \begin{itemize}
+        \item ex. if $\matr{A} \in \mathbb{R}^{m \times n}$ and $\matr{B} \in \mathbb{R}^{n \times p}$, then the matrix product $\matr{B}\matr{A}$ does not exist if $m \neq p$
+       \end{itemize}
+\end{enumerate}
+
+\subsection{Matrix Powers}
+\begin{description}
+ \item[matrix powers]: repeated matrix multiplication of a matrix $\matr{A} \in \mathbb{R}^{n \times n}$ with itself
+       \begin{align}
+        \matr{A}^2 = \matr{A}\matr{A} \quad\quad\quad \matr{A}^3 = \matr{A}\matr{A}\matr{A}
+       \end{align}
+\end{description}
+\begin{itemize}
+ \item Note: only \textit{square} matrices can have powers because the dimensions must match
+\end{itemize}
+
+\subsection{Matrix Transpose}
+\begin{description}
+ \item[matrix transpose]: flip matrix across the main diagonal so that the rows become the columns, and vice versa
+       \begin{align}
+        \begin{bmatrix}
+         1 & 2 \\
+         3 & 4 \\
+         5 & 6
+        \end{bmatrix}^T
+        =
+        \begin{bmatrix}
+         1 & 3 & 5 \\
+         2 & 4 & 6
+        \end{bmatrix}
+       \end{align}
+\end{description}
+\begin{itemize}
+ \item Identity: $(\matr{A}\matr{B}\matr{C})^T = \matr{C}^T\matr{B}^T\matr{A}^T$
+\end{itemize}
+
+\subsection{Determinant}
+\begin{description}
+ \item[determinant]: represents the area (or volume) of the parallelogram described by the vectors in the rows of the matrix
+\end{description}
+\begin{itemize}
+ \item Note: $\det(\matr{A})$ takes a matrix input and returns a scalar
+ \item For $\matr{A} = \begin{bmatrix}
+         a & b \\
+         c & d
+        \end{bmatrix}$, $\det(\matr{A}) = ad - bc$
+\end{itemize}
+
+\subsubsection{Properties of the determinant}
+\begin{enumerate}
+ \item $\det(AB) = \det(BA)$
+ \item $\det(A^{-1}) = \frac{1}{\det(1)}$
+ \item $\det(A^T) = \det(A)$
+ \item $\det(A) = 0 \iff A$ is singular
+\end{enumerate}
+
+\subsection{Trace}
+\begin{description}
+ \item[trace]: sum of the main diagonal elements
+       \begin{align}
+        \tr \bigg(\begin{bmatrix}
+         1 & 3 \\
+         5 & 7
+        \end{bmatrix}\bigg) = 1 + 7 = 8
+       \end{align}
+\end{description}
+\begin{itemize}
+ \item Note: the $\tr(A)$ is only defined for square matrices
+ \item $\tr(A)$ is invariant to a lot of transformations so it is sometimes used in proofs
+\end{itemize}
+
+\subsubsection{Properties of trace}
+\begin{enumerate}
+ \item $\tr(AB) = \tr(BA)$
+ \item $\tr(A + B) = \tr(A) + \tr(B)$
+\end{enumerate}
+
+\subsection{Special Matrices}
+
+\subsubsection{Identity Matrix}
+\begin{description}
+ \item[Identity Matrix]: a square matrix $\matr{I} \in \mathbb{R}^{n \times n}$ with 1's along the main diagonal and 0's everywhere else
+       \begin{align}
+        \matr{I} = \begin{bmatrix}
+         1 & 0 & 0 \\
+         0 & 1 & 0 \\
+         0 & 0 & 1
+        \end{bmatrix}
+       \end{align}
+\end{description}
+\begin{itemize}
+ \item For any matrix $\matr{A}$ (with proper dimensions)
+ \item $\matr{I} \cdot \matr{A} = \matr{A}$
+ \item $\matr{A} \cdot \matr{I} = \matr{A}$
+ \item i.e. matrix multiplication with $\matr{I}$ is commuative (special case)
+\end{itemize}
+
+\subsubsection{Diagonal Matrix}
+\begin{description}
+ \item[Diagonal Matrix]: a square matrix $\matr{D} \in \mathbb{R}^{n \times n}$ with scalars along the diagonal, 0's everywhere else
+       \begin{align}
+        \matr{D} = \begin{bmatrix}
+         3 & 0 & 0   \\
+         0 & 7 & 0   \\
+         0 & 0 & 2.5
+        \end{bmatrix}
+       \end{align}
+\end{description}
+\begin{itemize}
+ \item For any matrix $\matr{B} \in \mathbb{R}^{n \times p}$, $\matr{D}\matr{B}$ scales the rows of $\matr{B}$
+ \item Note: the identity matrix $\matr{I}$ is a special diagonal matrix that scales all the rows by 1
+\end{itemize}
+
+\subsubsection{Symmetric Matrix}
+\begin{description}
+ \item[Symmetric Matrix]: $\matr{A}^T = \matr{A}$
+       \begin{align}
+        \begin{bmatrix}
+         1 & 2 & 5 \\
+         2 & 1 & 7 \\
+         5 & 7 & 1
+        \end{bmatrix}
+       \end{align}
+\end{description}
+
+\subsubsection{Skew-symmetric Matrix}
+\begin{description}
+ \item[Skew-symmetric Matrix]: $\matr{A}^T = - \matr{A}$
+       \begin{align}
+        \begin{bmatrix}
+         0 & -2 & -5 \\
+         2 & 0  & -7 \\
+         5 & 7  & 0
+        \end{bmatrix}
+       \end{align}
+\end{description}
+
+\subsection{Transformation Matrices}
+\begin{description}
+ \item[Matrix transformation]: transforms vectors by matrix multiplication: $\matr{A}\vect{x} = \vect{x}^{\prime}$
+\end{description}
+
+\subsubsection{Scaling Transformation}
+\begin{description}
+ \item[Scaling matrix]: scales components of vector
+       \begin{align}
+        \underbrace{\begin{bmatrix}
+          S_x & 0   \\
+          0   & S_y
+         \end{bmatrix}}_\text{Scaling Matrix}
+        * \begin{bmatrix}
+         x \\
+         y
+        \end{bmatrix}
+        = \begin{bmatrix}
+         S_x x \\
+         S_y y
+        \end{bmatrix}
+       \end{align}
+\end{description}
+
+\subsubsection{Converting to a rotated reference frame}
+\begin{description}
+ \item[Rotation Matrix]: matrix that describes a rotation of a vector or equivalently changing to a rotated reference frame
+\end{description}
+\begin{itemize}
+ \item i.e. have the same data point but represent it in a new rotated frame
+ \item Note: rotating a reference frame left == rotating a data point to the right
+ \item Recall: a 2D vector stores a component in the x-direction and a component in the y-direction
+ \item Thus the transformation for $\begin{bmatrix}
+         x \\
+         y
+        \end{bmatrix}
+        \lra
+        \begin{bmatrix}
+         x' \\
+         y'
+        \end{bmatrix}$
+       is found by computing the dot product of the original vector with the new unit vectors for the x'-direction and y'-direction
+ \item Thus, the new coordinates $\begin{bmatrix}
+         x' \\
+         y'
+        \end{bmatrix}$
+       represent the length of the original vector lying in the direction of the new x-, y- axes
+ \item Equivalently, can express the original x-, y- unit vectors in terms of the new x'-, y- unit vectors
+       \begin{align}
+        \begin{bmatrix}
+         x' \\
+         y'
+        \end{bmatrix}
+         & =
+        \begin{bmatrix}
+         \text{(new x'-axis)} \\
+         \text{(new y'-axis)}
+        \end{bmatrix}
+        *\begin{bmatrix}
+         x \\
+         y
+        \end{bmatrix}    \\
+         & =\begin{bmatrix}
+         (\hat{x} \text{ in new x'-,y'- axes}) &
+         (\hat{y} \text{ in new x'-,y'- axes})
+        \end{bmatrix}
+        *\begin{bmatrix}
+         x \\
+         y
+        \end{bmatrix}
+       \end{align}
+       \begin{align}
+        \begin{bmatrix}
+         x' \\
+         y'
+        \end{bmatrix}
+                  & = \underbrace{\matr{R}}_\text{$2\times2$ Rotation Matrix}
+        *\begin{bmatrix}
+         x \\
+         y
+        \end{bmatrix}                                           \\
+        \vect{P}' & = \matr{R}\vect{P}
+       \end{align}
+\end{itemize}
+
+\subsubsection{2D Rotation Matrix}
+
+\begin{itemize}
+ \item For a CCW rotation of a point (aka a CW rotation of ref. frame)
+       \begin{align}
+        x' & = x\cos(\theta) - y\sin(\theta) \\
+        y' & = x\sin(\theta) + y\cos(\theta)
+       \end{align}
+       \begin{align}
+        \begin{bmatrix}
+         x' \\
+         y'
+        \end{bmatrix}
+                  & = \begin{bmatrix}
+         \cos(\theta) & -\sin(\theta) \\
+         \sin(\theta) & \cos(\theta)
+        \end{bmatrix}
+        \begin{bmatrix}
+         x \\
+         y
+        \end{bmatrix}               \\
+        \vect{P}' & = \matr{R}\vect{P}
+       \end{align}
+ \item Note: transpose of a rotation matrix produces a rotation in the opposite direction
+\end{itemize}
+
+\subsubsection{Normal Matrices}
+\begin{itemize}
+ \item Note: $\matr{R}$ belongs to the category of \textbf{normal} matrices
+ \item Properties of normal matrices
+       \begin{enumerate}
+        \item $\matr{R} \matr{R}^T = \matr{R}^T \matr{R} = \matr{I}$
+        \item $\det{\matr{R}} = 1$
+       \end{enumerate}
+ \item Rows of a rotation matrix are always mutually perpendicular (aka orthogonal) unit vectors
+ \item Same with columns
+\end{itemize}
+
+\subsubsection{Multiple Transformation Matrices}
+\begin{itemize}
+ \item For multiple transformation matrices, the transformations are applied one by one from \textbf{right to left}
+       \begin{align}
+        \vect{P}' & = \matr{R}_2\matr{R}_1\matr{S}\vect{P}       \\
+        \vect{P}' & = (\matr{R}_2(\matr{R}_1(\matr{S}\vect{P})))
+       \end{align}
+ \item By associativity, the result is the same as multiplying the matrices first to form a single transformation matrix
+       \begin{align}
+        \vect{P}' = (\matr{R}_2\matr{R}_1\matr{S})\vect{P}
+       \end{align}
+\end{itemize}
+
+\begin{itemize}
+ \item In general, matrix multiplication allows us to linearly combine components of a vector
+ \item This is sufficient for scaling, rotating, skewing, but we \underline{cannot} add a constant (not a linear operation)
+       \begin{align}
+        \begin{bmatrix}
+         a & b \\
+         c & d
+        \end{bmatrix}
+        \begin{bmatrix}
+         x \\
+         y
+        \end{bmatrix}
+        = \begin{bmatrix}
+         ax + by \\
+         cd + dy
+        \end{bmatrix}
+       \end{align}
+\end{itemize}
+
+\subsection{Homogenous System}
+
+\subsubsection{Translation}
+\begin{itemize}
+ \item Hacky Fix: can add translation by representing the problem in a higher $n + 1$ dimension and stick a 1 at the end of every vector
+       \begin{align}
+        \begin{bmatrix}
+         a & b & c \\
+         d & e & f \\
+         0 & 0 & 1
+        \end{bmatrix}
+        \begin{bmatrix}
+         x \\
+         y \\
+         1
+        \end{bmatrix}
+        =\begin{bmatrix}
+         ax + by + c \\
+         dx + ey + f \\
+         1
+        \end{bmatrix}
+       \end{align}
+ \item Note: $\begin{bmatrix}
+         x \\
+         y \\
+         1
+        \end{bmatrix}$
+       and
+       $\begin{bmatrix}
+         ax + by + c \\
+         dx + ey + f \\
+         1
+        \end{bmatrix}$
+       are \textbf{homogenous coordinates}
+ \item Now we can rotate, scale, skew, and translate
+ \item Matrix multiplication with translation matrix results in adding the rightmost column of the translation vector to the original vector
+ \item Generally, homogenous transformation matries have a bottom row of $\begin{bmatrix}
+         0 & 0 & 1
+        \end{bmatrix}$ so that the resulting vector $\begin{bmatrix}
+         x' \\
+         y' \\
+         1
+        \end{bmatrix}$ has a 1 at the bottom too
+\end{itemize}
+
+\subsubsection{Division}
+\begin{itemize}
+ \item ex. want to divide a vector by a coordinate $y_0$ to make things scale down as they get farther away in a camera image
+ \item Matrix multiplication can't actually divide so use this convention
+ \item \textbf{Convention}: in homogenous coordinates, divide the resulting vector by its last coordinates after matrix multiplication
+       \begin{align}
+        \begin{bmatrix}
+         x \\
+         y \\
+         7
+        \end{bmatrix}
+        \lra
+        \begin{bmatrix}
+         \frac{x}{7} \\
+         \frac{y}{7} \\
+         1
+        \end{bmatrix}
+       \end{align}
+\end{itemize}
+
+\subsubsection{2D translation using Homogenous Coordinates}
+\begin{itemize}
+ \item $P = (x,y) \to (x,y,1)$
+ \item $T = (t_x, t_y) \to (t_x, t_y, 1)$
+
+       \begin{align}
+        \vect{P}' = \begin{bmatrix}
+         x + t_x \\
+         y + t_y \\
+         1
+        \end{bmatrix}
+         & = \begin{bmatrix}
+         1 & 0 & t_x \\
+         0 & 1 & t_y \\
+         0 & 0 & 1
+        \end{bmatrix}
+        \begin{bmatrix}
+         x \\
+         y \\
+         1
+        \end{bmatrix}
+        = \begin{bmatrix}
+         \matr{I} & \vect{t} \\
+         0        & 1
+        \end{bmatrix}
+        * \vect{P}
+       \end{align}
+ \item Thus $\vect{P}' = \matr{T}\cdot \vect{P}$ where $\matr{T}$ is the translation matrix
+\end{itemize}
+
+\subsubsection{Scaling Matrix in Homogenous Coordinates}
+\begin{itemize}
+ \item $P = (x,y) \to (s_x x, s_yy,1)$
+ \item $T = (t_x, t_y) \to (t_x, t_y, 1)$
+ \item $P' = (x + t_x, y + t_y) \to (x + t_x, y + t_y, 1)$
+
+       \begin{align}
+        \vect{P}' = \begin{bmatrix}
+         s_x x \\
+         s_y y \\
+         1
+        \end{bmatrix}
+         & = \underbrace{\begin{bmatrix}
+          s_x & 0   & 0 \\
+          0   & s_y & 0 \\
+          0   & 0   & 1
+         \end{bmatrix}}_\matr{S}
+        \begin{bmatrix}
+         x \\
+         y \\
+         1
+        \end{bmatrix}
+        = \begin{bmatrix}
+         \matr{S}' & 0 \\
+         0         & 1
+        \end{bmatrix}
+        * \vect{P}
+       \end{align}
+ \item Thus $\vect{P}' = \matr{S} \cdot \vect{P}$ where $\matr{S}$ is the scaling matrix
+\end{itemize}
+
+\subsubsection{Scaling and Translating}
+
+\begin{itemize}
+ \item Recall: matrix transformations are applied right to left for $\vect{P}'' = \matr{T}\matr{S}\vect{P}$
+       \begin{align}
+        \vect{P}'' = \matr{T}\matr{S}\vect{P}
+         & =
+        \begin{bmatrix}
+         1 & 0 & t_x \\
+         0 & 1 & t_y \\
+         0 & 0 & 1
+        \end{bmatrix}
+        \begin{bmatrix}
+         s_x & 0   & 0 \\
+         0   & s_y & 0 \\
+         0   & 0   & 1
+        \end{bmatrix}
+        \begin{bmatrix}
+         x \\
+         y \\
+         1
+        \end{bmatrix}
+         & = \begin{bmatrix}
+         s_x & 0   & t_x \\
+         0   & s_y & t_y \\
+         0   & 0   & 1
+        \end{bmatrix}\begin{bmatrix}
+         x \\
+         y \\
+         1
+        \end{bmatrix}
+         & = \begin{bmatrix}
+         \matr{S}' & \vect{t}' \\
+         0         & 1
+        \end{bmatrix}
+        \begin{bmatrix}
+         x \\
+         y \\
+         1
+        \end{bmatrix}
+        = \begin{bmatrix}
+         s_x x + t_x \\
+         s_y y + t_y \\
+         1
+        \end{bmatrix}
+       \end{align}
+\end{itemize}
+
+\subsubsection{Scaling \& Translating != Translating \& Scaling}
+\begin{itemize}
+ \item Recall: matrix multiplication is generally \textbf{not} commutative, so order matters
+ \item If you scale after you translated, both the original vector and the translation will be scaled
+\end{itemize}
+
+\subsubsection{Rotation Matrix in Homogenous Coordinates}
+\begin{itemize}
+ \item Rotation $\vect{P}' = \matr{R} \cdot \vect{P}$ in homogenous coordinates is the same as regular rotation, just with the extra 1 in the bottom row
+       \begin{align}
+        \vect{P}' = \begin{bmatrix}
+         x\cos(\theta) - y\sin(\theta) \\
+         x\sin(\theta) + y\cos(\theta) \\
+         1
+        \end{bmatrix}
+         & = \underbrace{\begin{bmatrix}
+          cos(\theta)  & -\sin(\theta) & 0 \\
+          \sin(\theta) & \cos(\theta)  & 0 \\
+          0            & 0             & 1
+         \end{bmatrix}}_\matr{R}
+        \begin{bmatrix}
+         x \\
+         y \\
+         1
+        \end{bmatrix}
+        = \begin{bmatrix}
+         \matr{R}' & 0 \\
+         0         & 1
+        \end{bmatrix}
+        * \vect{P}
+       \end{align}
+\end{itemize}
+
+\subsubsection{Scaling + Rotation + Translation}
+
+\begin{align}
+ \vect{P}' & = (\matr{T}\matr{R}\matr{S}) \vect{P} \\
+           & = \begin{bmatrix}
+  \matr{I} & \vect{t} \\
+  0        & 1
+ \end{bmatrix}
+ \begin{bmatrix}
+  \matr{R} & 0 \\
+  0        & 1
+ \end{bmatrix}
+ \begin{bmatrix}
+  \matr{S} & 0 \\
+  0        & 1
+ \end{bmatrix}
+ \begin{bmatrix}
+  x \\
+  y \\
+  1
+ \end{bmatrix}                       \\
+           & = \begin{bmatrix}
+  \matr{R}\matr{S} & \vect{t} \\
+  0                & 1
+ \end{bmatrix}
+ \begin{bmatrix}
+  x \\
+  y \\
+  1
+ \end{bmatrix}
+\end{align}
+
+\begin{itemize}
+ \item Therefore, the \textbf{general transformation matrix} is
+       $\begin{bmatrix}
+         \matr{R}\matr{S} & \vect{t} \\
+         0                & 1
+        \end{bmatrix}$
+\end{itemize}
+
+\subsection{Matrix Inverse}
+\begin{itemize}
+ \item Given an invertible matrix $\matr{A}$, its inverse $\matr{A}^{-1}$ is a matrix such that $\matr{A}\matr{A}^{-1} = \matr{A}^{-1}\matr{A} = \matr{I}$
+ \item ex. $
+        \begin{bmatrix}
+         2 & 0 \\
+         0 & 3
+        \end{bmatrix}^{-1}
+        =\begin{bmatrix}
+         \frac{1}{2} & 0           \\
+         0           & \frac{1}{3}
+        \end{bmatrix}$
+ \item The inverse $\matr{A}^{-1}$ doesn't always exist
+ \item If $\matr{A}^{-1}$ exists, $\matr{A}$ is \textbf{invertible} (aka \textbf{nonsingular})
+ \item Otherwise, it is \textbf{non-invertible}/\textbf{singular}
+\end{itemize}
+
+\subsubsection{Properties of the Matrix Inverse}
+\begin{enumerate}
+ \item $(\matr{A}^{-1})^{-1} = \matr{A}$
+ \item $(\matr{A}\matr{B})^{-1} = \matr{B}^{-1}\matr{A}^{-1}$
+ \item $\matr{A}^{-T} \triangleq (\matr{A}^T)^{-1} = (\matr{A}^{-1})^T$
+\end{enumerate}
+
+\subsubsection{Pseudo Inverse}
+\begin{itemize}
+ \item if inverse $\matr{A}^{-1}$ exists, we can solve $\matr{A}\vect{x} = \vect{b}$ with $\vect{x} = \matr{A}^{-1}\vect{b}$
+       \begin{lstlisting}
+    np.linalg.inv(A) * b
+  \end{lstlisting}
+ \item If inverse $\matr{A}^{-1}$ doesn't exist or the matrix is too large (too expensive to compute), we can use the pseudo-inverse to find $\vect{x}$
+       \begin{lstlisting}
+    np.linalg.solve(A,b)
+  \end{lstlisting}
+ \item Python will try several numerical methods (including pseudoinverse) and return solution for $\vect{x}$
+       \begin{itemize}
+        \item if no exact solution \lra Python returns the closest value
+        \item if many solutions \lra Python returns the smallest one
+       \end{itemize}
+\end{itemize}
+
+
+\subsection{Linear Independence}
+\begin{itemize}
+ \item For a set of vectors $\vect{v}_1, \dots, \vect{v}_n$, if we can express $\vect{v}_1$ as a \textbf{linear combination} of other vectors $\vect{v}_2, \dots, \vect{v}_n$, then $\vect{v}_1$ is \textbf{linearly dependent} on the other vectors
+ \item ex. $\vect{v}_1 = 0.7\vect{v}_2 - 0.7 \vect{v}_n$
+\end{itemize}
+
+\begin{description}
+ \item[Linearly independent set]: no vector in a set is linearly dependent on the rest of the vectors
+\end{description}
+
+\begin{itemize}
+ \item ex. a set of vectors $\vect{v}_1, \dots, \vect{v}_n$ is always linearly independent if each vector is perpendicular to every other vector (and nonzero)
+\end{itemize}
+
+
+\subsection{Matrix Rank}
+\begin{description}
+ \item[Rank]: the rank of a transformation matrix tells you how many dimensions it transforms a vector to; i.e. the dimensions of the output vecor
+ \item[col-rank]: number of linearly independent column vectors of $\matr{A}$
+ \item[row-rank]: number of linearly independent row vectors of $\matr{A}$
+\end{description}
+
+\begin{itemize}
+ \item Note: column rank always equals row rank
+\end{itemize}
+\begin{align}
+ \rank(\matr{A}) \triangleq \text{col-rank}(\matr{A}) = \text{row-rank}(\matr{A})
+\end{align}
+\begin{itemize}
+ \item ex. if $\rank(\matr{A}) = 1$, then the transformation $\vect{P}' = \matr{A} \vect{P}$ maps points onto a line
+       \begin{align}
+        \begin{bmatrix}
+         1 & 1 \\
+         2 & 2
+        \end{bmatrix}
+        \begin{bmatrix}
+         x \\
+         y
+        \end{bmatrix}
+        = \begin{bmatrix}
+         x + y \\
+         2x + 2y
+        \end{bmatrix}
+       \end{align}
+ \item Here all the points are mapped to the line $y=2x$
+\end{itemize}
+
+\begin{description}
+ \item[full rank]: if an $m \times m$ matrix has rank $m$, we say it is full rank. It maps an $m \times 1$ vector uniquely to another $m \times 1$ vector. Also has an inverse matrix
+ \item[singular]: if an $m \times m$ matrix has rank $< m$, then at least one dimension is getting collapsed to zero. Thus there is no way to look at the output and find the input (not invertible)
+\end{description}
+
+\begin{itemize}
+ \item If an $m \times m$ matrix has \textbf{full rank} $\iff$ it is invertible
+\end{itemize}
+
+\subsection{Eigenvector \& Eigenvalues}
+\begin{description}
+ \item[Eigenvector]: an eigenvector $\vect{x}$ of a linear transformation $\matr{A}$ is a nonzero vector that when $\matr{A}$ is applied to it, does not change direction
+       \begin{align}
+        \matr{A}\vect{x} = \lambda\vect{x}, \quad\quad \vect{x} \neq 0
+       \end{align}
+\end{description}
+
+\begin{itemize}
+ \item Applying $\matr{A}$ to an eigenvector only scales the eigenvector by the scalar value $\lambda$, called an \textbf{eigenvalue}
+ \item An $m \times m$ matrix will have $\leq m$ eigenvectors where the eigenvalue $\lambda$ is nonzero
+ \item To find all eigenvalues of $\matr{A}$ solve this eqn for $\vect{x} \neq 0$
+       \begin{align}
+        \matr{A}\vect{x}                     & = \lambda\vect{x}           \\
+        \matr{A}\vect{x}                     & = (\lambda\matr{I})\vect{x} \\
+        (\matr{A} - \lambda\matr{I})\vect{x} & = 0
+       \end{align}
+ \item Since $\vect{x} \neq 0$, $(\matr{A} - \lambda\matr{I})$ cannot be invertible/nonsingular and its determinant is zero (i.e. nonzero nullspace)
+       \begin{align}
+        \det(\matr{A} - \lambda\matr{I}) = 0
+       \end{align}
+\end{itemize}
+
+\subsubsection{Properties of Eigenvectors and Eigenvalues}
+\begin{enumerate}
+ \item The trace of $\matr{A}$ is the sum of its eigenvalues
+       \begin{align}
+        \tr(\matr{A}) = \sum\limits^{n}\limits_{i=1} \lambda_i
+       \end{align}
+ \item The determinant of $\matr{A}$ equal to product of its eigenvalues
+       \begin{align}
+        \det(\matr{A}) = \prod\limits^{n}\limits_{i=1} \lambda_i
+       \end{align}
+ \item The rank of $\matr{A}$ is equal to the number of non-zero eigenvalues
+ \item Eigenvalues of a diagonal matrix $\matr{D} = \diag(d_1, \dots, d_n)$ are just the diagonal entries $d_1, \dots, d_n$
+\end{enumerate}
+
+\subsubsection{Spectral Theory}
+\begin{description}
+ \item[eigenpair]: an eigenvalue $\lambda$ and its associated eigenvector $\vect{x}$
+ \item[eigenspace]: the eigenspace associated with eigenvalue $\lambda$ is the space of vectors where $\matr{A} -\lambda\matr{I} = 0$
+ \item[spectrum of $\matr{A}$]: the set of all eigenvalues of a matrix $\matr{A}$
+       \begin{align}
+        \sigma(\matr{A}) = \{\lambda \in \mathbb{C} \mid \det(\matr{A} - \lambda\matr{I})=0 \}
+       \end{align}
+ \item[spectral radius]: magnitude of the largest eigenvalue
+       \begin{align}
+        \rho(\matr{A}) = \max \{ \abs{\lambda_1}, \dots, \abs{\lambda_n} \}
+       \end{align}
+\end{description}
+
+\begin{thm}[Spectral radius bound]
+ Spectral radius is bounded by the infinity norm of a matrix
+ \begin{align}
+  \rho(\matr{A}) = \lim_{k \to \infty} \norm{\matr{A}^k}^{\frac{1}{k}}
+ \end{align}
+\end{thm}
+
+\begin{proof}
+ let $\abs{\lambda}^k\norm{\vect{v}} = \norm{\abs{\lambda}^k \vect{v}} = \norm{\matr{A}^k \vect{v}}$
+
+ By the triangle rule,
+ \begin{align}
+  \abs{\lambda}^k\norm{\vect{v}} \leq \norm{\matr{A}^k} \cdot \norm{\vect{v}}
+ \end{align}
+ and since $\vect{v} \neq 0$
+ \begin{align}
+  \abs{\lambda}^k \leq \norm{\matr{A}^k}
+ \end{align}
+ which gives us
+ \begin{align}
+  \rho(\matr{A}) = \lim_{k \to \infty} \norm{\matr{A}^k}^{\frac{1}{k}}
+ \end{align}
+\end{proof}
+
+\subsection{Diagonalization}
+\begin{itemize}
+ \item A $n \times n$ matrix $\matr{A}$ is diagonalizable if it has $n$ linearly independent eigenvectors
+ \item Most square matrices are diagonalizable
+       \begin{itemize}
+        \item Normal matrices are diagonalizable
+        \item Matrices w/ $n$ distinct eigenvectors are diagonalizable
+       \end{itemize}
+\end{itemize}
+\begin{lem}
+ Eigenvectors associated with distinct eigenvalues are linearly independent
+\end{lem}
+
+\begin{itemize}
+ \item Eigenvalue equation can be written as $\matr{A}\matr{V} = \matr{V}\matr{D}$
+ \item $\matr{D}$ is the matrix of eigenvalues and $\matr{V}$ is the matrix of corresponding eigenvectors
+       \begin{align}
+        \matr{D} & = \begin{bmatrix}
+         \lambda_1 &        &           \\
+                   & \ddots &           \\
+                   &        & \lambda_n
+        \end{bmatrix} \\
+        \matr{V} & = \begin{bmatrix}
+         \vect{v}_1 & \vect{v}_2 \dots \vect{v}_n
+        \end{bmatrix}
+       \end{align}
+ \item Assuming all $\lambda_i$'s are unique, can diagonalize $\matr{A}$ by $\matr{A} = \matr{V} \matr{D} \matr{V}^{-1}$
+ \item Recall: eigenvectors are independent so $\matr{V}$ is invertible
+ \item if the eigenvectors are also all mutually orthogonal, then $\matr{V}$ is an orthogonal matrix and its inverse is its transpose
+       so $\matr{A} = \matr{V} \matr{D} \matr{V}^T$
+\end{itemize}
+
+\subsubsection{Symmetric Matrices}
+\begin{itemize}
+ \item if $\matr{A}$ is symmetric, then all of its eigenvalues are real and its eigenvectors are orthonormal
+ \item So we can diagonalize $\matr{A}$ by $\matr{A} = \matr{V} \matr{D} \matr{V}^T$
+ \item Given $y = \matr{V}^T x$
+       \begin{align}
+        x^T \matr{A} x = x^T \matr{V} \matr{D} \matr{V}^T x = y^T \matr{D}y = \sum\limits^{n}\limits_{i=1} \lambda_i y_i^2
+       \end{align}
+ \item Thus, for the following maximization
+       \begin{align}
+        \max_{x \in \mathbb{R}^n} x^T \matr{A} x \text{ subject to } \norm{x}_2^2 = 1
+       \end{align}
+ \item Then the maximizing $x$ can be found by finding the eigenvector that corresponds to the largest eigenvalue of $\matr{A}$
+\end{itemize}
+
+\subsubsection{Applications of Eigenvalues and Eigenvectors}
+\begin{enumerate}
+ \item PageRank
+ \item Schrodinger equation
+ \item Principle Component Analysis (PCA)
+ \item Image compression
+\end{enumerate}
+
+\subsection{Matrix Calculus}
+\subsubsection{Gradient}
+\begin{itemize}
+ \item Let a function $f: \mathbb{R}^{m \times n} \to \mathbb{R}$ take as input a matrix $A \in \mathbb{R}^{m \times n}$ and returns a real value
+ \item Then the \textbf{gradient of f} is
+       \begin{align}
+        \nabla_{\matr{A}} f(\matr{A}) = \begin{bmatrix}
+         \frac{\partial f(\matr{A})}{\partial A_{11}} & \frac{\partial f(\matr{A})}{\partial A_{12}} & \cdots & \frac{\partial f(\matr{A})}{\partial A_{1n}} \\
+         \frac{\partial f(\matr{A})}{\partial A_{21}} & \frac{\partial f(\matr{A})}{\partial A_{22}} & \cdots & \frac{\partial f(\matr{A})}{\partial A_{2n}} \\
+         \vdots                                       & \vdots                                       & \ddots & \vdots                                       \\
+         \frac{\partial f(\matr{A})}{\partial A_{m1}} & \frac{\partial f(\matr{A})}{\partial A_{m2}} & \cdots & \frac{\partial f(\matr{A})}{\partial A_{mn}}
+        \end{bmatrix}
+       \end{align}
+ \item Every entry in the matrix is
+       \begin{align}
+        \nabla_{\matr{A}} f(\matr{A})_{ij} = \frac{\partial f(\matr{A})}{\partial A_{ij}}
+       \end{align}
+ \item The size of $\nabla_{\matr{A}} f(\matr{A})$ is always the same size as $\matr{A}$
+ \item So if $\matr{A}$ is just a vector $\vect{x}$, then
+       \begin{align}
+        \nabla_{\vect{x}} f(\vect{x}) = \begin{bmatrix}
+         \frac{\partial f(\vect{x})}{\partial x_{1}} \\
+         \frac{\partial f(\vect{x})}{\partial x_{2}} \\
+         \vdots                                      \\
+         \frac{\partial f(\vect{x})}{\partial x_{n}}
+        \end{bmatrix}
+       \end{align}
+ \item ex. for $\vect{x} \in \mathbb{R}^n$, let $f(\vect{x}) = \vect{b}^T \vect{x}$ for some known vector $\vect{b} \in \mathbb{R}^n$
+       \begin{align}
+        f(\vect{x}) & = \begin{bmatrix}
+         b_1 & b_2 & \dots & b_n
+        \end{bmatrix}
+        \begin{bmatrix}
+         x_1    \\
+         x_2    \\
+         \vdots \\
+         x_n
+        \end{bmatrix} = \sum\limits^{n}\limits_{i=1} b_i x_i
+       \end{align}
+       \begin{align}
+        \frac{\partial f(\vect{x})}{\partial x_k}        & = \frac{\partial}{\partial x_k} \sum\limits^{n}\limits_{i=1} b_i x_i = b_k \\
+        \therefore \nabla_{\vect{x}} \vect{b}^T \vect{x} & = \vect{b}
+       \end{align}
+\end{itemize}
+
+\subsubsection{Properties of the Gradient}
+\begin{enumerate}
+ \item $\nabla_{\vect{x}} (f(\vect{x}) + g(\vect{x})) = \nabla_{\vect{x}} f(\vect{x}) + \nabla_{\vect{x}} g(\vect{x})$
+ \item For $t \in \mathbb{R}$, $\nabla_{\vect{x}} (t f(\vect{x})) = t \nabla_{\vect{x}} f(\vect{x})$
+\end{enumerate}
+
+\subsection{Hessian Matrix}
+\begin{itemize}
+ \item The \textbf{Hessian matrix} with respect to the vector $\vect{x} \in \mathbb{R}^n$ can be written as $\nabla_{\vect{x}}^2 f(\vect{x})$ or as $\matr{H}$ and is an $n \times n$ matrix of partial derivatives
+       \begin{align}
+        \nabla_{\vect{x}}^2 f(\vect{x}) = \begin{bmatrix}
+         \frac{\partial^2 f(\vect{x})}{\partial x_1^2}            & \frac{\partial^2 f(\vect{x})}{\partial x_1 \partial x_2} & \cdots & \frac{\partial^2 f(\vect{x})}{\partial x_1 \partial x_n} \\
+         \frac{\partial^2 f(\vect{x})}{\partial x_2 \partial x_1} & \frac{\partial^2 f(\vect{x})}{\partial x_2^2}            & \cdots & \frac{\partial^2 f(\vect{x})}{\partial x_2 \partial x_n} \\
+         \vdots                                                   & \vdots                                                   & \ddots & \vdots                                                   \\
+         \frac{\partial^2 f(\vect{x})}{\partial x_n \partial x_1} & \frac{\partial^2 f(\vect{x})}{\partial x_n \partial x_2} & \cdots & \frac{\partial^2 f(\vect{x})}{\partial x_n^2}            \\
+        \end{bmatrix}
+       \end{align}
+ \item Each entry is
+       \begin{align}
+        \nabla_{\vect{x}}^2 f(\vect{x})_{ij} = \frac{\partial^2 f(\vect{x})}{\partial x_i \partial x_j}
+       \end{align}
+ \item Note: Hessian is the gradient \textbf{of every} entry of the gradient of the vector
+ \item ex. 1\textsuperscript{st} column of the Hessian is the gradient of $\frac{\partial f(\vect{x})}{\partial x_1}$
+ \item Note: Hessian is always symmetric because of Schwarz's Theorem
+\end{itemize}
+
+\begin{thm}[Schwarz's Theorem]
+ \begin{align}
+  \frac{\partial^2 f(\vect{x})}{\partial x_i \partial x_j} = \frac{\partial^2 f(\vect{x})}{\partial x_j \partial x_i}
+ \end{align}
+ Order of partial derivatives doesn't matter as long as the 2\textsuperscript{nd} derivative exists and is continuous
+\end{thm}
+
+\begin{itemize}
+ \item ex. Consider quadratic function $f(\vect{x}) = \vect{x}^T \matr{A} \vect{x}$
+       \begin{align}
+        f(\vect{x}) & = \sum_{i=1}^{n} \sum_{j=1}^{n} A_{ij} x_i x_j
+       \end{align}
+       \begin{align}
+        \frac{\partial f(\vect{x})}{\partial x_k} & = \frac{\partial}{\partial x_k}\sum_{i=1}^{n}\sum_{j=1}^{n} A_{ij} x_i x_j                                                                                                   \\
+                                                  & = \frac{\partial}{\partial x_k} \bigg[ \sum_{i \neq k} \sum_{j \neq k} A_{ij} x_i x_j + \sum_{i \neq k} A_{ik} x_i x_k + \sum_{j \neq k} A_{kj} x_k x_j + A_{kk}x_k^2 \bigg] \\
+                                                  & = \sum_{i \neq k} A_{ik} x_i + \sum_{j \neq k} A_{kj} x_j + 2 A_{kk}x_k                                                                                                      \\
+                                                  & = \sum_{i=1}^{n} A_{ik} x_i + \sum_{j=1}^{n} A_{kj} x_j = 2\sum_{i=1}^{n} A_{ki} x_i
+       \end{align}
+       \begin{align}
+        \frac{\partial^2 f(\vect{x})}{\partial x_k \partial x_l} & = \frac{\partial}{\partial x_k} \bigg[ \frac{\partial f(\vect{x})}{\partial x_l} \bigg] = \frac{\partial}{\partial x_k} \bigg[ \sum_{i=1}^{n} 2 A_{li} x_i \bigg] \\
+                                                                 & = 2A_{lk} = 2A_{kl}
+       \end{align}
+ \item Thus $\nabla_{\vect{x}}^2 f(\vect{x}) = 2\matr{A}$
+\end{itemize}
+
+\subsection{Singular Value Decomposition}
+\begin{itemize}
+ \item Several computer algorithms can "factorize" a matrix into the product of other matrices
+ \item Singular Value Decomposition is the most useful
+       \begin{description}
+        \item[Singular Value Decomposition (SVD)]: represent a matrix $\matr{A}$ as a product of 3 matrices $\matr{U}$, $\matr{S}$, $\matr{V}^T$, where $\matr{U}$ and $\matr{V}^T$ are rotation matrices and $\matr{S}$ is a scaling matrix
+       \end{description}
+ \item MATLAB: \lstinline[language=matlab]{[U,S,V] = svd(A)}
+ \item ex.
+       \begin{align}
+        \underbrace{\begin{bmatrix}
+          -0.40  & 0.916 \\
+          -0.916 & 0.40
+         \end{bmatrix}}_{\matr{U}}
+        \underbrace{\begin{bmatrix}
+          5.39 & 0     \\
+          0    & 3.154
+         \end{bmatrix}}_{\matr{S}}
+        \underbrace{\begin{bmatrix}
+          -0.05 & 0.999 \\
+          0.999 & 0.05
+         \end{bmatrix}}_{\matr{V}^T}
+        = \underbrace{\begin{bmatrix}
+          3 & -2 \\
+          1 & 5
+         \end{bmatrix}}_{\matr{A}}
+       \end{align}
+ \item In general, if $\matr{A}$ is $m \times n$, then $\matr{U}$ will be $m \times m$, $\matr{S}$ will be $m \times n$ and $\matr{V}^T$ will be $n \times n$
+ \item ex.
+       \begin{align}
+        \underbrace{\begin{bmatrix}
+          -0.39 & -0.92 \\
+          -0.92 & 0.39
+         \end{bmatrix}}_{\matr{U}}
+        \underbrace{\begin{bmatrix}
+          9.51 & 0    & 0 \\
+          0    & 0.77 & 0
+         \end{bmatrix}}_{\matr{S}}
+        \underbrace{\begin{bmatrix}
+          -0.42 & -0.57 & -0.70 \\
+          0.81  & 0.11  & -0.58 \\
+          0.41  & -0.82 & 0.41
+         \end{bmatrix}}_{\matr{V}^T}
+        = \underbrace{\begin{bmatrix}
+          1 & 2 & 3 \\
+          4 & 5 & 6
+         \end{bmatrix}}_{\matr{A}}
+       \end{align}
+ \item Note: $\matr{U}$ and $\matr{V}$ are always rotation matrices
+       \begin{itemize}
+        \item also called "unitary" matrices because each column is a unit vector
+       \end{itemize}
+ \item $\matr{S}$ is a diagonal matrix whose number of nonzero entries is the $\rank{\matr{A}}$
+\end{itemize}
+
+
+\subsubsection{SVD Applications}
+\begin{itemize}
+ \item Each product of (column $i$ of $\matr{U}$) $\cdot$ (value $i$ from $\matr{S}$) $\cdot$ (row $i$ of $\matr{V}^T$) produces a component of the final $\matr{A}$
+ \item We are building $\matr{A}$ as a linear combination of the columns of $\matr{U}$
+ \item If we use all columns of $\matr{U}$, we can rebuild the original $\matr{A}$ perfectly
+ \item But with real-world data, we can often just use the first few columns of $\matr{U}$ and get something close to $\matr{A}$
+ \item Thus we call the first few columns of $\matr{U}$ the \textbf{Principal Components} of the data
+ \item Principal components show the major patterns that can be added together to produce the columns of the original matrix
+ \item Rows of $\matr{V}^T$ show how the principal components are mixed to produce the columns of $\matr{A}$
+ \item For SVD with images, can use first few principal components to reproduce a recognizable picture
+\end{itemize}
+
+\subsubsection{Principal Component Analysis}
+\begin{itemize}
+ \item Recall: columns of $\matr{U}$ are the Principal Components of the data
+       \begin{description}
+        \item[Principal Component Analysis (PCA)]: construct a matrix $\matr{A}$ where each column is a separate data sample. Run SVD on $\matr{A}$ and look at the first few columns of $\matr{U}$ to see the common patterns
+       \end{description}
+ \item Often raw data can have a lot of redundancy and patterns
+ \item PCA allows you to represent data samples as weights on the principal components, rather than using the original raw form of the data
+ \item This minimal PCA representation makes machine learning and other algorithms much more efficient
+\end{itemize}
+
+\subsubsection{SVD Algorithm}
+\begin{itemize}
+ \item Computers can find eigenvectors $\vect{x}$ such that $\matr{A}\vect{x} = \lambda\vect{x}$ using this iterative algorithm
+       \begin{lstlisting}
+    x = random unit vector
+    while (x not converged)
+      x = Ax
+      normalize x
+  \end{lstlisting}
+ \item $\vect{x}$ will quickly converge to an eigenvector
+ \item Some adjustments let this algorithm find all eigenvectors
+ \item Note: eigenvectors are for square matrices, but SVD is for all matrices
+ \item To do \lstinline[language=matlab]{svd(A)}, computers do this
+       \begin{enumerate}
+        \item Take eigenvectors of $\matr{A}\matr{A}^T$
+              \begin{itemize}
+               \item These eigenvectors are the columns of $\matr{U}$
+               \item Square root of eigenvalues are the singular values (the entries of $\matr{S}$)
+              \end{itemize}
+        \item Take eigenvectors of $\matr{A}^T\matr{A}$
+              \begin{itemize}
+               \item These eigenvectors are columns of $\matr{V}$ (or rows of $\matr{V}^T$)
+              \end{itemize}
+       \end{enumerate}
+ \item SVD is fast (even for large matrices)
 \end{itemize}
 
 
