@@ -7,6 +7,7 @@
 \usepackage{hyperref}
 \usepackage{enumitem}
 \usepackage{float}
+\usepackage{tikz}
 
 % For displaying code
 \usepackage{listings}
@@ -40,6 +41,12 @@
 \newcommand*{\horzbar}{\rule[.5ex]{2.5ex}{0.5pt}}
 \renewcommand{\qedsymbol}{\rule{0.7em}{0.7em}}
 \newcommand{\tabitem}{~~\llap{\textbullet}~~}
+
+\makeatletter
+\def\idots{\mathinner{\mkern1mu\raise\p@
+\vbox{\kern7\p@\hbox{.}}\mkern2mu
+\raise4\p@\hbox{.}\mkern2mu\raise7\p@\hbox{.}\mkern1mu}}
+\makeatother
 
 \DeclareMathOperator{\tr}{tr}
 \DeclareMathOperator{\rank}{rank}
@@ -110,7 +117,7 @@
 \begin{itemize}
  \item Human vision evolved to quickly recognize danger for survival
  \item It is very fast \lra $\sim150$ ms to recognize an animal
- \item For speed, humans \textit{focus} only on "relevant" \textit{areas of interest}
+ \item For speed, humans \textit{focus} only on ``relevant'' \textit{areas of interest}
  \item Thus, small signals/changes in the background can be difficult to detect and segment
  \item Humans also use \textit{context} to infer clues
        \begin{itemize}
@@ -186,9 +193,9 @@
 \begin{itemize}
  \item In 2D and 3D, vectors have a geometric interpretation as points
  \item Can also use vectors to represent pixels, gradients at an image keypoint, etc
- \item In this use case, vectors do not have a geometric interpretation, but calculations like "distance" are still useful
+ \item In this use case, vectors do not have a geometric interpretation, but calculations like ``distance'' are still useful
        \begin{itemize}
-        \item The distance measures "similarity" between 2 vectors
+        \item The distance measures ``similarity'' between 2 vectors
        \end{itemize}
 \end{itemize}
 
@@ -1200,7 +1207,7 @@
 
 \subsection{Singular Value Decomposition}
 \begin{itemize}
- \item Several computer algorithms can "factorize" a matrix into the product of other matrices
+ \item Several computer algorithms can ``factorize'' a matrix into the product of other matrices
  \item Singular Value Decomposition is the most useful
        \begin{description}
         \item[Singular Value Decomposition (SVD)]: represent a matrix $\matr{A}$ as a product of 3 matrices $\matr{U}$, $\matr{S}$, $\matr{V}^T$, where $\matr{U}$ and $\matr{V}^T$ are rotation matrices and $\matr{S}$ is a scaling matrix
@@ -1248,7 +1255,7 @@
        \end{align}
  \item Note: $\matr{U}$ and $\matr{V}$ are always rotation matrices
        \begin{itemize}
-        \item also called "unitary" matrices because each column is a unit vector
+        \item also called ``unitary'' matrices because each column is a unit vector
        \end{itemize}
  \item $\matr{S}$ is a diagonal matrix whose number of nonzero entries is the $\rank{\matr{A}}$
 \end{itemize}
@@ -1303,6 +1310,624 @@
        \end{enumerate}
  \item SVD is fast (even for large matrices)
 \end{itemize}
+
+\section{Colour Theory}
+\subsection{Colour}
+\begin{description}
+ \item[colour]: a psychological property caused by the interaction between physical light in the environment and our visual system; \textbf{not a physical property}
+\end{description}
+
+\subsection{Physics of Light}
+\begin{itemize}
+ \item Visible light spectrum ranges from 400nm to 700nm and humans are most sensitive to light with wavelengths in the middle of this spectrum
+ \item Any source of light can be completely described physically by its spectrum (i.e, the amount of energy emitted, per time unit, at each wavelength)
+ \item Surfaces have reflectance spectra; reflected light is focused on a certain portion of the visible light spectrum (ex. green leaves and red tomatoes)
+ \item Reflected colour is the result of interaction between the light source spectrum and the surface reflectance
+\end{itemize}
+
+\subsection{Human Encoding of Colour}
+\begin{itemize}
+ \item Human eyes has 2 types of light-sensitive cells: rods and cones
+       \begin{description}
+        \item[Rods]: highly sensitive (good in low-light) but does not encode any colour information
+        \item[Cones] less sensitive (good in high-light) and encodes colour information
+       \end{description}
+ \item Rods are more numerous than cones
+\end{itemize}
+
+\subsubsection{Cones and Colours}
+\begin{itemize}
+ \item Cones come in 3 types, each characterized by a unique response curve to different wavelengths of light
+ \item Each response curve peaks at a unique wavelength: either 440nm (Blue), 530nm (Green), or 560nm (Red)
+ \item Both cones and rods act as \textbf{filters}
+       \begin{itemize}
+        \item Output is multiplication of each response curve by the spectrum, integrated over all wavelengths
+        \item Info encoded by resulting 3 numbers is usually good enough
+        \item But some info is lost in the compression from spectrum to electrical impulse in the retina
+       \end{itemize}
+ \item Thus, some subset(s) of spectra will be erroneously perceived as identical; such spectra are called \textbf{metamers}
+\end{itemize}
+
+\subsection{Colour Spaces}
+\begin{description}
+ \item[Colour space]: describes range of colours as tuples of numbers, usually 3 or 4 values for colour components (ex. RGB)
+\end{description}
+\begin{itemize}
+ \item A colour space may be arbitrary or structured mathematically
+\end{itemize}
+
+\subsubsection{Linear Colour Spaces}
+\begin{itemize}
+ \item Defined by a choice of 3 \textbf{primaries}
+ \item i.e. 3 basis vectors in a 3D space
+\end{itemize}
+
+\begin{figure}[h!]
+ \centering
+ \includegraphics[width=10cm]{images/colour.png}
+ \caption{Mixing two lights produces colours that lie along a straight line in colour space. Mixing three lights produces colours that lie within the triangle they define in colour space.}
+\end{figure}
+
+\subsubsection{RGB Space}
+\begin{itemize}
+ \item Primary colours are monochromatic lights (for monitors, they are the 3 types of phosphors used)
+ \item Subtractive matching is required for certain wavelengths of light
+\end{itemize}
+
+\begin{figure}[h!]
+ \centering
+ \includegraphics[width=10cm]{images/rgb.png}
+ \caption{Representation of RBG primaries and corresponding matching functions. The matching functions are the amounts of primaries needed to match the monochromatic test color at the wavelength shown on the horizontal scale. Source: \url{https://en.wikipedia.org/wiki/CIE_1931_color_space}}
+\end{figure}
+
+\subsubsection{CIE XYZ Colour Space}
+\begin{itemize}
+ \item Primaries are imaginary, but matching functions are always positive
+ \item The Y parameter corresponds to brightness or luminance of a colour
+ \item Related to RGB space by linear transformation, upholding Grassman's Law
+\end{itemize}
+\begin{figure}[h!]
+ \centering
+ \includegraphics[width=10cm]{images/ciexyz.png}
+ \caption{Source: \url{https://en.wikipedia.org/wiki/CIE_1931_color_space}}
+\end{figure}
+
+
+\subsubsection{Nonlinear Colour Spaces - HSV}
+\begin{itemize}
+ \item Designed to reflect more traditional and intuitive colour mixing models (ex. mixing paint)
+ \item Based on how colours are used in human vision
+ \item Dimensions are: Hue, Saturation, Value (intensity)
+\end{itemize}
+\begin{figure}[h!]
+ \centering
+ \includegraphics[width=10cm]{images/hsv.png}
+ \caption{General source: \url{https://en.wikipedia.org/wiki/HSL_and_HSV}}
+\end{figure}
+
+\subsection{White Balancing}
+\begin{description}
+ \item[white balance]: process of adjusting image data captured by sensors to properly render neutral colours (white, gray, etc)
+\end{description}
+\begin{itemize}
+ \item White balance adjustment performed automatically by digital cameras (custom settings for different lighting)
+ \item Film cameras have different filters and film types for different conditions
+\end{itemize}
+
+\subsubsection{Importance of White Balancing}
+\begin{itemize}
+ \item White balancing is important because unadjusted images have an unnatural colour
+       \begin{enumerate}
+        \item Sensors in cameras or film are different from human eyes
+        \item Different display media render images differently
+        \item Viewing conditions when image was taken are usually different from image viewing conditions
+       \end{enumerate}
+\end{itemize}
+
+\begin{figure}[h!]
+ \centering
+ \includegraphics[width=10cm]{images/wb.png}
+ \caption{Example of two photos, one unbalanced, and one with incorrect white balancing.  Source: \url{http://www.cambridgeincolour.com/tutorials/white-balance.htm}}
+\end{figure}
+
+\subsubsection{Von Kries Method}
+\begin{description}
+ \item[Von Kries method]: scale each colour channel by a ``gain factor'' to match appearnce of a gray neutral object. Accomplished by using the \textbf{gray card method}
+ \item[Gray Card method]: take photo of neutral (gray or white) card and determine values of each channel. If we find that the card has RGB values $r_w$, $g_w$, $b_w$, then we scale each channel by $\frac{1}{r_w}$, $\frac{1}{g_w}$, $\frac{1}{b_w}$
+\end{description}
+
+\subsubsection{Other White Balancing Methods}
+\begin{itemize}
+ \item Without Gray Cards, we need to guess which pixels correspond with white objects
+\end{itemize}
+\begin{description}
+ \item[Gray World Assumption]: assume that the average pixel value in the photo ($r_{avg}$, $g_{avg}$, $b_{avg}$) is gray and scale the image pixels by $\frac{1}{r_{avg}}$, $\frac{1}{g_{avg}}$, $\frac{1}{b_{avg}}$
+ \item[Brightest Pixel Assumption]: apply a weighting to each channel that is inversely proportional to the values of the brightest pixels. Works on non-saturated images and assumes that image highlights usually have the colour of the light source (which is usually white)
+ \item[Gamut Mapping]: apply a transformation to the image that maps the gamut of the image to the gamut of a "standard" image under white light
+ \item[Gamut]: set of all pixel colours displayed in an image. In mathematical terms, this is a ``convex hull'' and a subset of all possible colour combintations
+\end{description}
+
+
+\subsection{Colour in Computer Vision}
+\begin{itemize}
+ \item Colour histograms for indexing and retrieval
+ \item Skin detection
+ \item Image segmentation and retrieval
+ \item Buiilding appearance models for tracking
+\end{itemize}
+
+\section{Pixels and Filters}
+\subsection{Images Types}
+\begin{enumerate}
+ \item Binary (black and white only)
+ \item Greyscale
+ \item Colour
+\end{enumerate}
+
+\subsubsection{Binary Image Representation}
+\begin{itemize}
+ \item Pixel values have an integer 0 or 1 value
+       \begin{itemize}
+        \item 0: black
+        \item 1: white
+       \end{itemize}
+ \item Image is a 2D array of 0's and 1's
+\end{itemize}
+
+\subsubsection{Grayscale}
+\begin{itemize}
+ \item Pixel values have integer values in [0, 255] to represent a wider range of intensity
+       \begin{itemize}
+        \item 0: black
+        \item 1 - 254: some shade of grey
+        \item 255: white
+       \end{itemize}
+ \item Image is 2D array of integers in [0, 255]
+\end{itemize}
+
+\subsubsection{Colour Image}
+\begin{itemize}
+ \item 3 channels (RGB), each with integer values in [0, 255]
+       \begin{itemize}
+        \item 0: absence of primary
+        \item 1 - 254: some contribution of primary
+        \item 255: full contribution of primary
+       \end{itemize}
+ \item Image is a stack of 3 2D arrays of integers in [0, 255]
+ \item i.e. 3 channels (RGB, LAB, HSV)
+ \item Colour is represented with 3 numbers (3D coordinates in 3D colour space)
+       \begin{itemize}
+        \item RGB: [R, G, B]
+        \item Lab: [L, a, b]
+        \item HSV: [H, S, V]
+       \end{itemize}
+\end{itemize}
+
+\subsection{Sampling and Resolution}
+\begin{itemize}
+ \item Images are \textbf{samples}; they are not continuous and consist of discrete pixels of a certain size and density
+ \item Pixels have a nonzero size \lra images have limited resolution
+ \item Fine details (smaller than pixel width) are approximated by pixels, which introduces \underline{error}
+       \begin{description}
+        \item[Resolution]: sampling parameter defined in dots per inch (DPI) or equivalent measures of spatial density. Standard screens have 72 DPI.
+        \item[Pixels]: quantized to an integer value within [0,255]. Pixel value is in ``grayscale'' (or ``intensity'')
+       \end{description}
+\end{itemize}
+
+\subsection{Image Histograms}
+\begin{description}
+ \item[Histogram]: provides frequency of brightness (intensity) values in the image (how many times a certain pixel value appears in the image). Captures the distribution of grey levels in the image (or color channel)
+\end{description}
+\begin{itemize}
+ \item Histograms help us detect particular image features
+       \begin{itemize}
+        \item Sky: smooth coloration denotes consistency in image, consistent with the image of a sky
+        \item Grass: a jagged histogram shows a wide ranging variety in colouration, consistent with the shadows in a grass field
+        \item Faces: the colour composition of a face will be displayed in a histogram
+       \end{itemize}
+ \item Histograms can be used to provide a quantifiable description of what things look like; this can be used as input to classifiers
+\end{itemize}
+
+\begin{lstlisting}
+  def histogram(im):
+    for row in im.shape[0]:
+      for col in im.shape[1]:
+        val = im[row, col]
+        h[val] += 1
+\end{lstlisting}
+
+\begin{figure}[h!]
+ \begin{center}
+  \includegraphics[scale=0.4]{images/histogram.png} \\
+  \caption{The image is sampled at two vertical positions, sampling a patch of sky and sampling a patch of grass. The corresponding histograms are shown to the right. Adapted from the accompanying lecture slide (Slide 23, slide credit Dr. Mubarak Shah}
+ \end{center}
+\end{figure}
+
+\subsection{Images as Functions}
+\begin{itemize}
+ \item Images are usually digital (discrete representations of the photographed scene)
+ \item They sample the 2D space onto a regular grid to produce a representation of the image as a matrix of integer values
+ \item When dealing with images, we can imagine the image matrix as infinitely tall and wide
+       \begin{align}
+        \begin{bmatrix}
+         \ddots &           & \vdots   &          & \idots \\
+                & f[-1, 1]  & f[0, 1]  & f[1, 1]           \\
+         \dots  & f[-1, 0]  & f[0, 0]  & f[0, 1]  & \dots  \\
+                & f[-1, -1] & f[0, -1] & f[1, -1] & \dots  \\
+         \idots &           & \vdots   &          & \ddots
+        \end{bmatrix}
+       \end{align}
+ \item However, the displayed image is only a finite subset of this infinite matrix
+ \item Thus, we can describe images as coordinates in a matrix
+\end{itemize}
+
+\begin{itemize}
+ \item An image can also be treated as a function $f: \mathbb{R}^2 \to \mathbb{R}^N$ where $f[m,n]$ is the intensity of a pixel at position $(m,n)$
+ \item Note: we use square brackets, instead of usual parantheses, to denote discrete functions
+ \item When we treat an image as a function, it is defined over a rectangle with finite range
+ \item ex. the following function $f$ returns the (grayscale) intensity of a single pixel in an image located in the region $[a,b] \times [c,d]$
+       \begin{align}
+        f: [a,b] \times [c,d] \to [0,255] \tag{Grayscale Pixel Intensity}
+       \end{align}
+       \begin{description}
+        \item[domain support]: the set of values $[a,b] \times [c,d]$ which contains all the values that are valid inputs to the function $f$
+        \item[range]: the set [0,255] which defines the set of possible outputs
+       \end{description}
+ \item An image can also be treated a function mapping $\mathbb{R}^2 \to \mathbb{R}^3$
+ \item ex. the RGB intensities of a given pixel can be written as the function $g$
+       \begin{align}
+        g[x, y] = \begin{bmatrix} r[x, y] \\ g[x, y] \\ b[x, y] \end{bmatrix} \tag{Color Pixel Intensity}
+       \end{align}
+ \item where $r,g,b: [a,b] \times [c,d] \to [0,255]$
+\end{itemize}
+
+\subsection{Linear Systems (Filters)}
+\begin{description}
+ \item[filtering]: forming a new image whose pixel values are transformed from original pixel values
+\end{description}
+\begin{enumerate}
+ \item Denoising: removing salt and pepper noise
+ \item Super resolution: blurry \lra super detailed
+\end{enumerate}
+
+\begin{description}
+ \item[linear systems]: converts an input function $f[m,n]$ to an output (or response) function $g[m,n]$ where $m$, $n$ are the independent variables. For images, ($m$, $n$) correspond with spatial position in the image
+ \item[system operator $\mathcal{S}$]: maps a member of the set of possible output $g[m,n]$ to a member of the set of possible inputs $f[m,n]$
+       \begin{align}
+        g      & = \mathcal{S}[f]                 \\
+        g[n,m] & = \mathcal{S}\{f[n,m]\}          \\
+        f[m,n] & \xrightarrow{\mathcal{S}} g[m,n]
+       \end{align}
+\end{description}
+
+\subsubsection{Filter 1: Moving Average (Smoothing)}
+\begin{description}
+ \item[Moving Average]: sets the value of a pixel to be the average of its neigbouring pixels. (ex. the nine pixels in a $3 \times 3$ area, when applying a $3 \times 3$ filter)
+       \begin{align}
+        g[m,n] = \frac{1}{9} \sum\limits^1\limits_{i=-1} \sum\limits^1\limits_{j=-1} f[m-i, n-j] \tag{Weighted Average}
+       \end{align}
+\end{description}
+\begin{itemize}
+ \item The weighted average filter smoothes out sharper edges/features in the image, creating a blurred or smoothed effect
+       \begin{align}
+        h[m,n] = \frac{1}{9}
+        \begin{bmatrix}
+         1 & 1 & 1 \\
+         1 & 1 & 1 \\
+         1 & 1 & 1
+        \end{bmatrix}
+       \end{align}
+ \item Note: moving average filter is linear and shift-invariant
+\end{itemize}
+
+\subsubsection{Filter 2: Image Segmentation}
+\begin{description}
+ \item[Image Segmentation]: based on simple threshold where the filter sets a pixel either to 255 (white) or 0 (black) depending on whether or not it meets the threshold $t$
+       \begin{align}
+        g[m, n] = \begin{cases} 255 & f[m, n] \geq t \\ 0 & \text{otherwise}\end{cases} \tag{Threshold}
+       \end{align}
+\end{description}
+\begin{itemize}
+ \item The basic image segmentation filter divides an image's pixels into binary black or white regions depending on whether $f[m, n] \geq t$
+\end{itemize}
+
+\subsection{Properties of Systems}
+\begin{itemize}
+ \item Here are some useful properties that a system may or may not possess
+\end{itemize}
+
+\subsubsection{Amplitude Properties}
+
+\begin{enumerate}
+ \item \textbf{Additivity}: A system is additive if it satisfies the equation
+       \begin{align}
+        \mathcal{S}[f_i[m, n] + f_j[m, n]] = \mathcal{S}[f_i[m, n]] + \mathcal{S}[f_j[m, n]]
+       \end{align}
+ \item \textbf{Homogeneity}: A system is homogeneous if it satisfies the equation
+       \begin{align}
+        \mathcal{S}[\alpha f_i[n, m]] = \alpha\mathcal{S}[f_i[n, m]
+       \end{align}
+ \item \textbf{Superposition}: A system has the property of superposition if it satisfies the equation
+       \begin{align}
+        \mathcal{S}[\alpha f_i[n, m]] + \beta f_j[n, m]] = \alpha\mathcal{S}[f_i[n, m]] + \beta\mathcal{S}f_j[n, m]]
+       \end{align}
+ \item \textbf{Stability}: A system is stable if it satisfies the inequality
+       \begin{align}
+        \abs{f[n, m}] \leq k \implies 	\abs{g[n, m]}  \leq ck \quad\quad\quad \text{for some $c$}
+       \end{align}
+ \item \textbf{Invertibility}: A system is invertible if it satisfies the equation
+       \begin{align}
+        \mathcal{S}^{-1}[\mathcal{S}[f[n, m]]] = f[n, m]
+       \end{align}
+\end{enumerate}
+
+\subsubsection{Spatial Properties}
+\begin{enumerate}
+ \item \textbf{Causality}: A system is causal if for $m < m_0$ and $n < n_0$
+       \begin{align}
+        f[m, n] = 0 \implies g[m, n] = 0
+       \end{align}
+ \item \textbf{Shift Invariance}: A system is shift invariant if
+       \begin{align}
+        f[m - m_0, n - n_0] \xrightarrow{\mathcal{S}} g[m - m_0, n - n_0]
+       \end{align}
+\end{enumerate}
+
+\subsection{Linear Systems}
+\begin{description}
+ \item[Linear system]: system that satisfies the property of superposition
+ \item[Linear shift-invariant (LSI) system]: a linear system that is also shift-invariant
+\end{description}
+\begin{itemize}
+ \item When we use a linear system for filtering, the new image pixels are weighted sums of the original pixel values, where the same set of weights are used for each pixel
+ \item Note: Linear shift-invariant systems are important because human vision is linear shift-invariant
+\end{itemize}
+
+\subsubsection{Impulse Response}
+\begin{itemize}
+ \item To consider the impulse response of a system $\mathcal{S}$, pass the 2D delta function $\delta_2 [m,n]$ into the system
+       \begin{align}
+        \delta_2[m, n] = \begin{cases} 1 & m = 0 \text{ and } n = 0 \\
+         0 & \text{otherwise}
+        \end{cases}
+       \end{align}
+       \begin{description}
+        \item[impulse response $h$]: by inputing the 2D delta function $\delta_2 [m,n]$ into the system, we get a filter $h[m,n]$ that tells us what the system is actually doing at each pixel
+              \begin{align}
+               h[m,n] = \mathcal{S}[\delta_2]
+              \end{align}
+       \end{description}
+ \item Consider a $3 \times 3$ image $f[m,n]$
+       \begin{align}
+        f[m,n] =
+        \begin{bmatrix}
+         f[0,0] & f[0,1] & f[0,2] \\
+         f[1,0] & f[1,1] & f[1,2] \\
+         f[2,0] & f[2,1] & f[2,2] \\
+        \end{bmatrix}
+       \end{align}
+ \item We can rewrite $f[m,n]$ as a sum of 2D delta functions
+       \begin{align}
+        f[m,n] & = f[0,0] \times \delta_2[m-0,n-0] + f[0,1] \times \delta_2[m-0,n-1] + \dots + f[m,n] \times \delta_2[0,0] + \dots \\
+               & = \sum\limits_{i = -\infty}^{\infty}\sum\limits_{j = -\infty}^{\infty} f[i, j] \delta_2[m - i, n - j]
+       \end{align}
+ \item Now if we apply the system operator $\mathcal{S}$ to our image $f[m,n]$, we get
+       \begin{align}
+        \mathcal{S}[f[m,n]] & = \mathcal{S}\bigg[ \sum\limits_{i = -\infty}^{\infty}\sum\limits_{j = -\infty}^{\infty} f[i, j] \delta_2[m - i, n - j]  \bigg] \\
+                            & = \sum\limits_{i = -\infty}^{\infty}\sum\limits_{j = -\infty}^{\infty} f[i, j] \mathcal{S} \bigg[ \delta_2[m - i, n - j] \bigg]
+       \end{align}
+ \item by applying superposition and shift invariance for $\mathcal{S}$
+       \begin{align}
+        \mathcal{S}[\alpha f_i[n, m]] + \beta f_j[n, m]] = \alpha\mathcal{S}[f_i[n, m]] + \beta\mathcal{S}f_j[n, m]]
+       \end{align}
+ \item Recall: the impulse response $h[m,n]$ is defined as $\mathcal{S}[\delta_2[m,n]]$, so
+       \begin{align}
+        f[m,n] = \sum\limits_{i = -\infty}^{\infty}\sum\limits_{j = -\infty}^{\infty} f[i, j] h[m-i,n-j]
+       \end{align}
+ \item Note: an LSI system is completely specified by its impulse response $h[m,n]$
+       \begin{figure}[H]
+        \begin{center}
+         \begin{tikzpicture}
+          \draw (-8, 0) node {\Large $f[n, m]$};
+          \draw[->, thick] (-7, 0) -- (-6, 0);
+          \draw (-5.5, 0.5) rectangle (-3.5, -0.5);
+          \draw (-4.5, 0) node {\Large $\mathcal{S}$ LSI};
+          \draw (-4.5,-1) node {$\delta_2[n,m] \xrightarrow{\mathcal{S}} h[m,n]$};
+          \draw[->, thick] (-3, 0) -- (-2, 0);
+          \draw (2, 0) node {\Large $\sum\limits_{i = -\infty}^{\infty}\sum\limits_{j = -\infty}^{\infty} f[i, j] h[m-i,n-j]$};
+         \end{tikzpicture}
+        \end{center}
+        \caption{Graphical representation of the impulse response}
+       \end{figure}
+ \item Thus the impulse response $h[m,n]$ can be used to find the output image $g[m,n]$ with discrete convolution
+       \begin{align}
+        \mathcal{S}[f] = f[m,n] * h[m,n]
+       \end{align}
+\end{itemize}
+
+\subsubsection{Impulse Response Example: Moving Average Filter}
+\begin{itemize}
+ \item The moving average filter is defined as
+       \begin{align}
+        g[m,n] = \frac{1}{9} \sum\limits^1\limits_{i=-1} \sum\limits^1\limits_{j=-1} f[m-i, n-j]
+       \end{align}
+ \item Using $h[m,n] = \mathcal{S}[\delta_2]$
+       \begin{align}
+        h[m,n] = \frac{1}{9} \sum\limits^1\limits_{i=-1} \sum\limits^1\limits_{j=-1} \delta_2[m-i, n-j]
+       \end{align}
+\end{itemize}
+
+
+\subsection{Convolution}
+\begin{itemize}
+ \item The easiest way to think of convolution is as a system that uses information from neighbouring pixels to filter the target pixel
+ \item Convolution allows us to compute the output of passing any input signal through a system by simply considering the impulse response of the system
+       \begin{itemize}
+        \item This works because any signal can be decomposed into a weighted sum of impulse functions (ex. pixels in an image are 2D delta functions)
+        \item This allows us to use the a weighted sum of the impulse responses for each part of the signal
+       \end{itemize}
+ \item The impulse response of a system, $h[n]$ is defined as the output resulting from passing an impulse function into a system
+ \item When a system is linear, scaling the impulse function results in scaling of the impulse response by the same amount
+ \item When a system is shift-invariant, shifting the impulse function shifts the impulse response by the same amount
+ \item Thus, in general for an arbitrary input signal $x[n]= \sum\limits^{\infty}\limits_{k=-\infty} x[k] \delta [n-k]$ passed into a linear, shift-invariant system, the output is $y[n] = \sum\limits^{\infty}_{k=-\infty} x[h]h[n-k]$
+       \begin{itemize}
+        \item i.e the convolution of the signal $x$ with the impulse response $h$
+       \end{itemize}
+ \item 2D convolution is similar to 1D, but we have to iterate over 2 axes instead of 1
+       \begin{align}
+        f[m,n] * h[m,n] = \sum\limits_{i = -\infty}^{\infty}\sum\limits_{j = -\infty}^{\infty} f[i, j] h[m-i,n-j]
+       \end{align}
+ \item $f[m,n]*h[m,n]$ represents a function being multiplied by a shifted impulse response
+ \item $f$ = image and $h$ = kernel
+\end{itemize}
+
+\subsubsection{2D Convolution Example: Identity Filter}
+\begin{align}
+ \begin{bmatrix}
+  0 & 0 & 0 \\
+  0 & 1 & 0 \\
+  0 & 0 & 0
+ \end{bmatrix}
+ \tag{No change in output}
+\end{align}
+
+\subsubsection{2D Convolution Example: Shift Left Filter}
+\begin{align}
+ \begin{bmatrix}
+  0 & 0 & 0 \\
+  0 & 0 & 1 \\
+  0 & 0 & 0
+ \end{bmatrix}
+ \tag{Shifts image left by 1 pixel}
+\end{align}
+
+\subsubsection{2D Convolution Example: Box Blur Filter}
+\begin{align}
+ \frac{1}{9}\begin{bmatrix}
+  1 & 1 & 1 \\
+  1 & 1 & 1 \\
+  1 & 1 & 1
+ \end{bmatrix}
+ \tag{Blurs image}
+\end{align}
+\begin{itemize}
+ \item The box blur filter takes the average of neighbouring pixels, which smoothes extreme features (less sharp)
+\end{itemize}
+
+\subsubsection{2D Convolution Example: Sharpening Filter}
+\begin{align}
+ \underbrace{\begin{bmatrix}
+   0 & 0 & 0 \\
+   0 & 2 & 0 \\
+   0 & 0 & 0
+  \end{bmatrix}
+ -\frac{1}{9}\begin{bmatrix}
+   1 & 1 & 1 \\
+   1 & 1 & 1 \\
+   1 & 1 & 1
+  \end{bmatrix}}_\text{filter sums to 1} \\
+ = \underbrace{\begin{bmatrix}
+   0 & 0 & 0 \\
+   0 & 1 & 0 \\
+   0 & 0 & 0
+  \end{bmatrix}}_\text{original image}
+ +\underbrace{\begin{bmatrix}
+   0 & 0 & 0 \\
+   0 & 1 & 0 \\
+   0 & 0 & 0
+  \end{bmatrix}
+  -\frac{1}{9}\begin{bmatrix}
+   1 & 1 & 1 \\
+   1 & 1 & 1 \\
+   1 & 1 & 1
+  \end{bmatrix}}_\text{details of the image}
+ \tag{Blurs image}
+\end{align}
+\begin{itemize}
+ \item By subtracting the average from the original picture, only the extreme features remain
+ \item Adding the extreme features to the original image then accentuates differences (sharpens image)
+\end{itemize}
+
+\subsection{Implementation of Convolution: Image Support and Edge effects}
+\begin{itemize}
+ \item A computer will only compute finite support signals
+ \item i.e. images that are zero for $m,n$ outside of rectangular region (the domain support)
+ \item So convolution software often zero pads the matrix
+ \item Numpy's convolution performs 2D discrete system convolution of finite support signals
+ \item At the edge, can either do
+       \begin{itemize}
+        \item zero padding
+        \item edge value replication
+        \item mirror extension (wrap around to other side)
+       \end{itemize}
+\end{itemize}
+
+\subsection{Cross Correlation **}
+\begin{itemize}
+ \item \textbf{Cross Correlation} of two 2D signals $f[m,n]$ and $g[m,n]$ is
+       \begin{align}
+        r_{fg}[k,l] & \triangleq \sum\limits^{\infty}\limits_{m=-\infty} \sum\limits^{\infty}\limits_{n=-\infty} f[m,n] * g[m-k, n-l]                       \\
+                    & = \sum\limits^{\infty}\limits_{m=-\infty} \sum\limits^{\infty}\limits_{n=-\infty} f[m-k,n-l]g^{*}[m,n], \quad\quad k,l \in \mathbb{Z}
+       \end{align}
+ \item $(k,l)$ is called the \textbf{lag}
+ \item Cross correlation is equivalent to convolution without the flip of the filter kernel
+       \begin{align}
+        r_{fg}[m,n] = f[m,n] * g^{*}[-m, -n]
+       \end{align}
+ \item Note: $g^{*}$ is defined as the complex conjugate of $g$. In this class, $g(n,m) \in \mathbb{R}$ so $g^{*} = g$
+ \item Correlation can be used to find known features in images by using a kernel that contains target features
+\end{itemize}
+
+\subsubsection{Properties of Cross Correlation}
+\begin{enumerate}
+ \item \textbf{Associative property}:
+       \begin{align}
+        (f**h_1)**h_2 = f**(h_1 ** h_2)
+       \end{align}
+ \item \textbf{Distributive property}:
+       \begin{align}
+        f**(h_1 + h_2) = (f**h_1) + (f**h_2)
+       \end{align}
+ \item \textbf{Commutative property}:
+       \begin{align}
+        h_1 ** h_2 = h_2 ** h_1
+       \end{align}
+ \item \textbf{Shfit property}:
+       \begin{align}
+        f[m,n] ** \delta_2[m-m_0,n-n_0] = f[m-m_0,n-n_0]
+       \end{align}
+ \item \textbf{Shift invariance}:
+       \begin{align}
+        g[m,n]   & = f[m,n] ** h[m,n]                            \\
+        \implies & f[m-\ell_1,n-\ell_l] ** h[m-\ell_2, n-\ell_2]
+        = g[m-\ell_1 - \ell_2, n-\ell_1 -\ell_2]
+       \end{align}
+\end{enumerate}
+
+\subsubsection{Convolution vs Cross Correlation}
+\begin{itemize}
+ \item Correlation is equivalent to convolution, i.e. $f**g = f*g$
+\end{itemize}
+\begin{description}
+ \item[Convolution]: integral that expresses the amount of overlap of one function as it is shifted over another function. Convolution is a \underline{filtering operation}
+ \item[Correlation]: calculates a similarity measure for two input signals (ex. 2 image patches). The output of correlation reaches a maximum when the two signals match best. Correlation is a \underline{measure of relatedness} of two signals
+\end{description}
+
+\subsection{Discrete Convolution *}
+\begin{itemize}
+ \item Fold $h[k,l]$ about origin to form $h[-k,-l]$
+ \item Shift the folded results by a number to form $h[m-k, n-\ell]$
+ \item Multiply $h[m-k, n-\ell]$ by $f[k,l]$
+ \item Sum over all $k,\ell$
+ \item Repeat for every number
+\end{itemize}
+
+
+
+
+
+
+
 
 
 
