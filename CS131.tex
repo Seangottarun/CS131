@@ -307,7 +307,7 @@
 \end{itemize}
 
 \begin{itemize}
- \item if $\vect{y}$ is a unit vector, then $\vect{x} \cdot \vect{y} = \abs{\vect{x}}\cos(\theta)$ gives the length of $\vect{x}$ which lies in the direction of $\vect{y}$
+ \item if $\vect{y}$ is a unit vector, then $\vect{x} \cdot \vect{y} = \abs{\vect{x}}\cos(\theta)$ gives the (signed) length of $\vect{x}$ which lies in the direction of $\vect{y}$
 \end{itemize}
 
 \subsection{Matrix Multiplication}
@@ -1362,7 +1362,7 @@
  \item i.e. 3 basis vectors in a 3D space
 \end{itemize}
 
-\begin{figure}[h!]
+\begin{figure}[H]
  \centering
  \includegraphics[width=10cm]{images/colour.png}
  \caption{Mixing two lights produces colours that lie along a straight line in colour space. Mixing three lights produces colours that lie within the triangle they define in colour space.}
@@ -1374,7 +1374,7 @@
  \item Subtractive matching is required for certain wavelengths of light
 \end{itemize}
 
-\begin{figure}[h!]
+\begin{figure}[H]
  \centering
  \includegraphics[width=10cm]{images/rgb.png}
  \caption{Representation of RBG primaries and corresponding matching functions. The matching functions are the amounts of primaries needed to match the monochromatic test color at the wavelength shown on the horizontal scale. Source: \url{https://en.wikipedia.org/wiki/CIE_1931_color_space}}
@@ -1386,7 +1386,7 @@
  \item The Y parameter corresponds to brightness or luminance of a colour
  \item Related to RGB space by linear transformation, upholding Grassman's Law
 \end{itemize}
-\begin{figure}[h!]
+\begin{figure}[H]
  \centering
  \includegraphics[width=10cm]{images/ciexyz.png}
  \caption{Source: \url{https://en.wikipedia.org/wiki/CIE_1931_color_space}}
@@ -1399,7 +1399,7 @@
  \item Based on how colours are used in human vision
  \item Dimensions are: Hue, Saturation, Value (intensity)
 \end{itemize}
-\begin{figure}[h!]
+\begin{figure}[H]
  \centering
  \includegraphics[width=10cm]{images/hsv.png}
  \caption{General source: \url{https://en.wikipedia.org/wiki/HSL_and_HSV}}
@@ -1424,7 +1424,7 @@
        \end{enumerate}
 \end{itemize}
 
-\begin{figure}[h!]
+\begin{figure}[H]
  \centering
  \includegraphics[width=10cm]{images/wb.png}
  \caption{Example of two photos, one unbalanced, and one with incorrect white balancing.  Source: \url{http://www.cambridgeincolour.com/tutorials/white-balance.htm}}
@@ -1536,7 +1536,7 @@
         h[val] += 1
 \end{lstlisting}
 
-\begin{figure}[h!]
+\begin{figure}[H]
  \begin{center}
   \includegraphics[scale=0.4]{images/histogram.png} \\
   \caption{The image is sampled at two vertical positions, sampling a patch of sky and sampling a patch of grass. The corresponding histograms are shown to the right. Adapted from the accompanying lecture slide (Slide 23, slide credit Dr. Mubarak Shah}
@@ -1759,6 +1759,16 @@
 
 
 \subsection{Convolution}
+\begin{description}
+ \item[kernel $H$]: pattern of weights used for a linear filter
+ \item[convolution]: process of applying the filter. Given a filter kernel $H$, the convolution of the kernel with image $F$ is an image $G$, where the $i,j$th component of $G$ is
+       \begin{align}
+        G = \sum\limits_{u}\sum\limits_{v} H_{i-u,j-v} F_{u,v}
+       \end{align}
+       \begin{itemize}
+        \item Note: for convolution the kernel $H$ is flipped both horizontal and vertical direction (we have $-u$ and $-v$) before multiplying the overlapped input data $F$
+       \end{itemize}
+\end{description}
 \begin{itemize}
  \item The easiest way to think of convolution is as a system that uses information from neighbouring pixels to filter the target pixel
  \item Convolution allows us to compute the output of passing any input signal through a system by simply considering the impulse response of the system
@@ -1906,7 +1916,7 @@
 
 \subsubsection{Convolution vs Cross Correlation}
 \begin{itemize}
- \item Correlation is equivalent to convolution, i.e. $f**g = f*g$
+ \item Correlation is equivalent to convolution, i.e. $f**g = f*g$ \textbf{only} when the kernel/filter is \textbf{symmetric}
 \end{itemize}
 \begin{description}
  \item[Convolution]: integral that expresses the amount of overlap of one function as it is shifted over another function. Convolution is a \underline{filtering operation}
@@ -1915,12 +1925,602 @@
 
 \subsection{Discrete Convolution *}
 \begin{itemize}
- \item Fold $h[k,l]$ about origin to form $h[-k,-l]$
- \item Shift the folded results by a number to form $h[m-k, n-\ell]$
- \item Multiply $h[m-k, n-\ell]$ by $f[k,l]$
+ \item Fold $h[k,l]$ about origin to form $h[-k,-l]$ (flip both horizontally and vertically)
+ \item Shift the folded results by a number $k$ to form $h[m-k, n-\ell]$
+ \item Multiply the kernel $h[m-k, n-\ell]$ by the image pixel $f[k,l]$
  \item Sum over all $k,\ell$
  \item Repeat for every number
 \end{itemize}
+
+\section{Edge Detection}
+\begin{itemize}
+ \item \textbf{Goal}: identify sudden changes (discontinuities) in an image
+ \item Intuitively, most semantic and shape info from the image can be encoded in the edges
+ \item Edge representation is more compact than pixels
+ \item \textbf{Ideal}: artist's line drawing (but artist is also using object-level knowledge)
+\end{itemize}
+
+\subsubsection{Why are Edges Useful}
+\begin{itemize}
+ \item Extract info and recognize objects
+ \item Recover geometry and viewpoints  (ex. vanishing lines)
+\end{itemize}
+
+\subsubsection{Origins of Edges in Images}
+\begin{enumerate}
+ \item Surface normal discontinuities
+       \begin{itemize}
+        \item ex. corners or edges where different planes intersect
+        \item Each plane has a different normal and as you cross the corner/edge, the surface normal changes drastically resulting in an edge
+       \end{itemize}
+ \item Depth discontinuities
+       \begin{itemize}
+        \item Differences in depth results in different lighting and thus an image edge
+       \end{itemize}
+ \item Surface colour discontinuities
+       \begin{itemize}
+        \item ex. shadows, patterns on an object (ex. tiles)
+       \end{itemize}
+ \item Illumination discontinuity
+\end{enumerate}
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=8cm]{images/discontinuities.png}
+ \caption{Examples of discontinities that create edges}
+\end{figure}
+
+\subsection{Image Gradients}
+\subsubsection{1D Derivatives}
+\begin{description}
+ \item[Continuous]:
+       \begin{align}
+        \frac{df}{dx} = \lim_{\Delta x \to 0} \frac{f(x) - f(x-\Delta x)}{\Delta x} = f'(x) = f_x
+       \end{align}
+ \item[Discrete estimate (finite differences)]:
+       \begin{align}
+        \frac{df}{dx} \approx f(x) - f(x-1) = f'(x) = f_x
+       \end{align}
+\end{description}
+
+
+\subsubsection{1D Discrete Derivatives and Filters}
+\begin{itemize}
+ \item Note: can calculate discrete derivatives by convolving differentiation kernels (remember to flip filters for convolution)
+ \item Differentiation is linear and shift invariant
+\end{itemize}
+\begin{description}
+ \item[Backward]:
+       \begin{align}
+        \frac{df}{dx} = f(x) - f(x-1) = f'(x)
+       \end{align}
+       \begin{align}
+        \begin{bmatrix}
+         0 & 1 & -1
+        \end{bmatrix}
+       \end{align}
+ \item[Forward]:
+       \begin{align}
+        \frac{df}{dx} = f(x) - f(x+1) = f'(x)
+       \end{align}
+       \begin{align}
+        \begin{bmatrix}
+         -1 & 1 & 0
+        \end{bmatrix}
+       \end{align}
+ \item[Central]:
+       \begin{align}
+        \frac{df}{dx} = f(x+1) - f(x-1) = f'(x)
+       \end{align}
+       \begin{align}
+        \begin{bmatrix}
+         1 & 0 & -1
+        \end{bmatrix}
+       \end{align}
+\end{description}
+
+\subsection{2D Continuous Derivatives}
+\begin{description}
+ \item[2D function]:
+       \begin{align}
+        f(x,y)
+       \end{align}
+ \item[Gradient vector]:
+       \begin{align}
+        \nabla f(x,y) =
+        \begin{bmatrix}
+         \dfrac{\partial f(x,y)}{\partial x} \\[3ex]
+         \dfrac{\partial f(x,y)}{\partial y}
+        \end{bmatrix}
+        = \begin{bmatrix}
+         f_x \\
+         f_y
+        \end{bmatrix}
+       \end{align}
+ \item[Gradient magnitude]:
+       \begin{align}
+        \abs{\nabla f(x,y)} = \sqrt{f_x^2 + f_y^2}
+       \end{align}
+ \item[Gradient direction]:
+       \begin{align}
+        \theta = \arctan\bigg(\frac{f_y}{f_x}\bigg)
+       \end{align}
+\end{description}
+\begin{itemize}
+ \item Note: gradient direction is largely independent of illumination intensity
+\end{itemize}
+
+\subsubsection{2D Discrete Gradients}
+
+\begin{itemize}
+ \item Can approximate gradient using neighbouring pixels based on central discrete derivative equation extended to 2D
+       \begin{itemize}
+        \item The gradient in the x-dir is then given by
+              \begin{align}
+               \frac{1}{3}\begin{bmatrix}
+                1 & 0 & -1 \\
+                1 & 0 & -1 \\
+                1 & 0 & -1
+               \end{bmatrix}
+              \end{align}
+        \item The gradient in the y-dir is given by
+              \begin{align}
+               \frac{1}{3}\begin{bmatrix}
+                1  & 1  & 1  \\
+                0  & 0  & 0  \\
+                -1 & -1 & -1
+               \end{bmatrix}
+              \end{align}
+       \end{itemize}
+ \item Note: the x-direction gradient detects vertical edges while the y-direction gradient detects horizontal edges
+ \item ex. the x and y gradients for an image $I$ can be found by convolution with the $3 \times 3$ kernels
+       \begin{align}
+        I_y =
+        \begin{bmatrix}
+         10 & 10 & 20 & 20 & 20 \\
+         10 & 10 & 20 & 20 & 20 \\
+         10 & 10 & 20 & 20 & 20 \\
+         10 & 10 & 20 & 20 & 20 \\
+         10 & 10 & 20 & 20 & 20 \\
+        \end{bmatrix}
+        * \frac{1}{3}\begin{bmatrix}
+         1  & 1  & 1  \\
+         0  & 0  & 0  \\
+         -1 & -1 & -1
+        \end{bmatrix}
+        = \begin{bmatrix}
+         0 & 0 & 0 & 0 & 0 \\
+         0 & 0 & 0 & 0 & 0 \\
+         0 & 0 & 0 & 0 & 0 \\
+         0 & 0 & 0 & 0 & 0 \\
+         0 & 0 & 0 & 0 & 0 \\
+        \end{bmatrix}
+       \end{align}
+       \begin{align}
+        I_x =
+        \begin{bmatrix}
+         10 & 10 & 20 & 20 & 20 \\
+         10 & 10 & 20 & 20 & 20 \\
+         10 & 10 & 20 & 20 & 20 \\
+         10 & 10 & 20 & 20 & 20 \\
+         10 & 10 & 20 & 20 & 20 \\
+        \end{bmatrix}
+        * \frac{1}{3}\begin{bmatrix}
+         1 & 0 & -1 \\
+         1 & 0 & -1 \\
+         1 & 0 & -1
+        \end{bmatrix}
+        = \begin{bmatrix}
+         0 & 0  & 0  & 0 & 0 \\
+         0 & 10 & 10 & 0 & 0 \\
+         0 & 10 & 10 & 0 & 0 \\
+         0 & 10 & 10 & 0 & 0 \\
+         0 & 0  & 0  & 0 & 0 \\
+        \end{bmatrix}
+       \end{align}
+\end{itemize}
+
+\subsection{Simple Edge Detection}
+\begin{description}
+ \item[edge]: set of points with rapid change in the image intensity function. Edges correspond with the extrema of the derivative of the image intensity function.
+\end{description}
+\begin{figure}[H]
+ \centering
+ \includegraphics[height=6cm]{images/edge_intensity_extrema.png}
+ \caption{An image with intensity function and first derivative}
+\end{figure}
+
+\subsubsection{Image Gradient}
+\begin{description}
+ \item[Gradient of an Image]: a vector that points in the direct of most rapid increase in intensity
+       \begin{align}
+        \nabla f =
+        \begin{bmatrix}
+         \dfrac{\partial f}{\partial x} \\[3ex]
+         \dfrac{\partial f}{\partial y}
+        \end{bmatrix}
+       \end{align}
+ \item[Gradient direction]:
+       \begin{align}
+        \theta = \arctan\bigg(\frac{f_y}{f_x}\bigg)
+       \end{align}
+ \item[Edge strength]: magnitude of image gradient
+       \begin{align}
+        \norm{\nabla f} = \sqrt{\bigg(\frac{\partial f}{\partial x}\bigg)^2 + \bigg(\frac{\partial f}{\partial y}\bigg)^2}
+       \end{align}
+\end{description}
+
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=10cm]{images/gradient_direction.png}
+ \caption{The gradient vector directions}
+\end{figure}
+
+\begin{itemize}
+ \item The shadows (dark spots) in an image derivative show which direction derivative you have
+       \begin{itemize}
+        \item vertical shadows \lra x-dir derivative
+        \item horizontal shadows \lra y-dir derivative
+       \end{itemize}
+\end{itemize}
+
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=10cm]{images/tiger_gradient.png}
+ \caption{The gradients applied to an image of a tiger}
+\end{figure}
+
+\subsection{Intensity Profile}
+\subsubsection{Effects of Noise}
+\begin{itemize}
+ \item With noise, it is hard to find the edge from maxima in derivative (because derivative is sensitive to noise and makes a lot of erroneous peaks)
+ \item Finite difference filters respond strongly to noise
+       \begin{itemize}
+        \item Image noise results in pixels that look very different from their neighbours
+        \item Generally, the larger the noise, the stronger the response
+       \end{itemize}
+ \item Solution: smoothing the image should help by forcing the pixels that look different to their neighbours (poteintally noise pixels) to look more like their neighbours
+\end{itemize}
+
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=10cm]{images/noisy_derivative.png}
+ \caption{The derivative of an edge in a noisy image. Note it is extremely hard to find the edge with this noisy image}
+\end{figure}
+
+\subsubsection{1D Smoothing Filters}
+\begin{description}
+ \item[Mean smoothing filter]:
+       \begin{align}
+        \begin{bmatrix}
+         1 \\
+         1 \\
+         1
+        \end{bmatrix}
+        \quad\quad\quad\quad
+        \begin{bmatrix}
+         1 & 1 & 1
+        \end{bmatrix}
+       \end{align}
+ \item[Gaussian smoothing filter]:
+       \begin{align}
+        \begin{bmatrix}
+         1 \\
+         2 \\
+         1
+        \end{bmatrix}
+        \quad\quad\quad\quad
+        \begin{bmatrix}
+         1 & 2 & 1
+        \end{bmatrix}
+       \end{align}
+\end{description}
+
+\subsubsection{Gaussian Blur}
+\begin{description}
+ \item[Gaussian blur]: blurring image with a Gaussian function to reduce image noise. Usually involves convolving with a filter that roughly approximates the 2D Gaussian
+\end{description}
+\begin{itemize}
+ \item Note: Gaussian is a low-pass filter so it attenuates high frequency signals
+ \item Gaussian blurring usually done as a preliminary step
+\end{itemize}
+\begin{description}
+ \item[1D Gaussian]:
+       \begin{align}
+        G(x) = \frac{1}{\sqrt{2\pi\sigma}}e^{-\frac{x^2}{2\sigma^2}}
+       \end{align}
+ \item[2D Gaussian]:
+       \begin{align}
+        G(x,y) = \frac{1}{2\pi\sigma}e^{-\frac{x^2+y^2}{2\sigma^2}}
+       \end{align}
+\end{description}
+
+
+\subsection{Smooth First Edge Detection (Unoptimized)}
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=10cm]{images/smooth_first_inefficient.png}
+ \caption{Smooth first edge detection}
+\end{figure}
+\begin{itemize}
+ \item To find edges, look for peaks in $\frac{d}{dx} (f*g)$
+ \item Note: smoothing an image and then differentiating it is the same as convolving it with the derivative of a smoothing kernel
+\end{itemize}
+
+\subsubsection{Derivative Theorem of Convolution}
+\begin{thm}{Derivative Theorem of Convolution}
+ \begin{align}
+  \frac{d}{dx} (f*g) = f*\frac{d}{dx} g
+ \end{align}
+\end{thm}
+\begin{itemize}
+ \item This allows us to save an extra step in edge detection
+\end{itemize}
+
+\subsubsection{Improved Smooth First Edge Detection}
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=10cm]{images/smooth_first_efficient.png}
+ \caption{Improved smooth first edge detection}
+\end{figure}
+
+\subsection{Tradeoff between Smoothing at Different Scale $\sigma$}
+\begin{itemize}
+ \item Smoothed derivative reduces noise susceptibility but blurs edges
+\end{itemize}
+
+\subsection{Criteria for an Optimal Edge Detector}
+\begin{enumerate}
+ \item Good detection
+       \begin{itemize}
+        \item Minimizes probability of false positives (detecting fake edges caused by noise)
+       \end{itemize}
+ \item Good localization
+       \begin{itemize}
+        \item Detected edges must be as close as possible ot the true edges
+       \end{itemize}
+ \item Single response
+       \begin{itemize}
+        \item Detector must return one point only for each true edge point
+        \item i.e. minimize the number of local maxima around the true edge
+       \end{itemize}
+\end{enumerate}
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=8cm]{images/edge_detectors.png}
+ \caption{Issues with bad edge detectors}
+\end{figure}
+
+\subsection{Sobel Edge Detector}
+\begin{itemize}
+ \item Uses two $3 \times 3$ kernels which are convolved with the original image to calculate approximations to the image gradient
+ \item One kernel for horizontal changes and one for vertical
+ \item Based on smoothing and differentiation idea
+\end{itemize}
+
+\subsubsection{Sobel Operator}
+\begin{itemize}
+ \item Note: Sobel kernels can be decomposed into a product of a smoothing and a differentiation kernel
+\end{itemize}
+\begin{description}
+ \item[Sobel operator in x-dir $G_x$]:
+       \begin{align}
+        G_x = \begin{bmatrix}
+         +1 & 0 & -1 \\
+         2  & 0 & -2 \\
+         +1 & 0 & -1
+        \end{bmatrix}
+        = \underbrace{\begin{bmatrix}
+          1 \\
+          2 \\
+          1
+         \end{bmatrix}}_\text{Gaussian smoothing}
+        \underbrace{\begin{bmatrix}
+          +1 & 0 & -1
+         \end{bmatrix}}_\text{Differentiation}
+       \end{align}
+ \item[Sopel Operator in y-dir $G_y$]:
+       \begin{align}
+        G_x = \begin{bmatrix}
+         +1 & +2 & +1 \\
+         0  & 0  & 0  \\
+         -1 & -2 & -1
+        \end{bmatrix}
+        =
+        \underbrace{\begin{bmatrix}
+          +1 \\
+          0  \\
+          -1
+         \end{bmatrix}}_\text{Differentiation}
+        \underbrace{\begin{bmatrix}
+          1 & 2 & 1
+         \end{bmatrix}}_\text{Gaussian smoothing}
+       \end{align}
+ \item[Sobel magnitude $G$]:
+       \begin{align}
+        G = \sqrt{G_x^2 + G_y^2}
+       \end{align}
+ \item[Angle/direction of gradient $\theta$]:
+       \begin{align}
+        \theta = \arctan\bigg(\frac{G_y}{G_x}\bigg)
+       \end{align}
+\end{description}
+
+\subsubsection{Sobel Operator Issues}
+\begin{enumerate}
+ \item Poor localization
+       \begin{itemize}
+        \item Sobel operator triggers response in multiple adjacent pixels
+       \end{itemize}
+ \item Thresholding value favours certain directions of otehrs
+       \begin{itemize}
+        \item Can miss oblique edges more than horizontal/vertical edges
+        \item False negatives
+       \end{itemize}
+\end{enumerate}
+
+\subsection{Canny Edge Detector}
+\begin{itemize}
+ \item Most widely used edge detector in computer vision
+ \item Thoretical model: step edges corrupted by additive Gaussian noise
+ \item Canny shows that 1\textsuperscript{st} derivative of Gaussian closely approximates the operator that optimizes the product of signal-to-noise ratio and lcoalization
+\end{itemize}
+
+\subsubsection{Canny Edge Detector Features}
+\begin{enumerate}
+ \item Suppresses noise
+ \item Computes gradient magnitude and direction
+ \item Apply Non-Maximum suppression
+       \begin{itemize}
+        \item Assumes minimal response
+       \end{itemize}
+ \item Use hysteresis and connectivity analysis to detect edges
+\end{enumerate}
+
+\subsubsection{Non-Maximum Suppression}
+\begin{itemize}
+ \item This step makes sure that edges are specific
+ \item Assume that edge occurs where gradient reaches a maximum
+ \item Suppress non-maximizing gradient even if it passes threshold
+ \item Round all gradient directions to the nearest $45^{\circ}$
+\end{itemize}
+
+\subsubsection{Removing Unnecessary Gradients}
+\begin{itemize}
+ \item $\norm{\nabla G}(x,y)$ is the gradient at each pixel
+       \begin{align}
+        M(x,y) = \begin{cases} \norm{\nabla G}(x,y) & \text{if} \norm{\nabla G}(x,y) \geq \norm{\nabla G}(x',y') \text{ and } \norm{\nabla G}(x,y) \geq \norm{\nabla G}(x'',y'') \\ 0 & \text{otherwise}\end{cases}
+       \end{align}
+ \item Note: $x'$ and $x''$ are the neighbours of $x$ along normal direction to an edge
+\end{itemize}
+
+\subsubsection{Hysteresis Thresholding}
+\begin{itemize}
+ \item Avoid streaks near threshold values
+ \item Define 2 thresholds \textbf{low} and \textbf{high}
+       \begin{itemize}
+        \item If less than low \lra \textbf{not an edge}
+        \item If greater than high \lra \textbf{strong edge}
+        \item If between low and high \lra \textbf{weak edge}
+       \end{itemize}
+\end{itemize}
+\begin{itemize}
+ \item if gradient at a pixel is
+       \begin{itemize}
+        \item Above high \lra \textbf{strong edge pixel}
+        \item Below low \lra \textbf{non-edge pixel}
+        \item Between low and high
+              \begin{itemize}
+               \item if connected to a strong edge pixel or other pixels in between low and high \lra \textbf{edge-pixel}
+              \end{itemize}
+       \end{itemize}
+ \item Use breath-first or depth-first search to find all the edges
+\end{itemize}
+
+\subsubsection{Canny Edge Detector Algorithm}
+\begin{enumerate}
+ \item Filter image with $x,$ derivatives of Gaussian
+ \item Find magnitude and orientation of gradient
+ \item Non-maximum suppression
+       \begin{itemize}
+        \item Thins multi-pixel wide ``ridges'' down to single pixel width
+       \end{itemize}
+ \item Thresholding and hysteresis
+       \begin{itemize}
+        \item Define 2 thresholds: low and high
+        \item Use the high threshold to start edges and the low threshold to continue them
+       \end{itemize}
+\end{enumerate}
+
+\subsection{Effect of Standard Deviation $\sigma$ (aka scale) in Gaussian Filter}
+\begin{itemize}
+ \item Large $\sigma$ detects large scale edges
+ \item Small $\sigma$ detects fine features
+\end{itemize}
+
+
+\subsection{Hough Transform}
+\begin{description}
+ \item[Hough Transform (HT)]: detects location of lines in an image using parametrized equations
+\end{description}
+\begin{itemize}
+ \item Caveat: Hough transform can only detect lines, circles, and other structures \textbf{only} if their parametric equation is known
+ \item Can give robust detection under noise and partial occlusion
+\end{itemize}
+
+\subsubsection{Preparation before applying Hough Transform}
+\begin{itemize}
+ \item Perform some edge detection and a thresholding of the edge magnitude
+ \item Thus we have some pixels that may partially describe the boundary of some objects
+\end{itemize}
+
+\subsubsection{Detecting Lines using Hough Transform}
+\begin{itemize}
+ \item Goal: find sets of pixels that make up straight lines
+ \item Consider a point of known coordinates $(x_i,y_i)$
+ \item There are many lines passing through the point $(x_i, y_i)$
+ \item Straight lines that pass through $(x_i, y_i)$ have the equation $y = ax_i + b$ for some set of parameters $(a,b)$
+ \item We can rewrite this equation as $b = -ax_1 + y_1$ and consider $x,y$ as parameters and $a,b$ as variables
+ \item This gives a line in $(a,b)$ space parametrixed in $x$ only
+ \item Thus a single point in $(x_1,y_1)$ space gives us a line in $(a,b)$ space
+ \item 2 points $(x_1,y_1)$ and $(x_2,y_2)$ define a line in $(x,y)$ plane and also give rise to 2 diferent liens in $(a,b)$ space
+ \item In $(a,b)$ space, these lines will intersect at $(a',b')$
+ \item Thus, all points on the line defined by $(x_1,y_1)$ and $(x_2,y_2)$ in $(x,y)$ space will parametrize liens that interesect in $(a',b')$ in $(a,b)$ space
+\end{itemize}
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=\textwidth]{images/hough_transform.png}
+ \caption{Transformation from original $(x,y)$ space to Hough $(a,b)$ space. Here we have two points $(x_1,y_1)=(1,1)$ and $(x_2,y_2)=(2,3)$. We transform these points into $(a,b)$ space to get the lines $b=-a*1 +1$ and $b=-a*2+3$. These two lines intersect at $a=2$ and $b=-1$, which gives us the equation for the original line in $(x,y)$ space as $y=2x-1$}
+\end{figure}
+
+\subsubsection{Hough Transform Algorithm}
+\begin{enumerate}
+ \item Quantize parameter space $(a,b)$ by dividing it into \textbf{accumulator cells}
+ \item Count the number of times a line intersects a given cell
+       \begin{itemize}
+        \item For each pair of points $(x_1,y_1)$ and $(x_2,y_2)$ detected as an edge, find the intersection $(a',b')$ in $(a,b)$ space
+        \item Increase the value of a cell in the range $[[a[[a_{min}, a_{max}],[b_{min},b_{max}]]$ that $(a', b')$ belongs to
+       \end{itemize}
+ \item Cells receiving more than a certain number of counts (aka \textbf{votes}) are assumed to correspond with lines in $(x,y)$ space
+\end{enumerate}
+
+\subsubsection{Hough Transform in $(\rho, \theta)$ space)}
+\begin{itemize}
+ \item Can represent lines as polar coordinates instead of $y=ax + b$ *allows us to represent vertical lines
+       \begin{itemize}
+        \item A vertical line will have $\theta=0$ and $\rho$ equal to the x-intercept
+        \item A horizontal line will have $\theta=90$ and $\rho$ equal to the y-intercept
+       \end{itemize}
+       \begin{description}
+        \item[Polar coordinate representation]: For a pixel $(x_i,y_i)$, we transform it with the equation $x\cos\theta + y\sin\theta = \rho$
+       \end{description}
+ \item Note: lines in $(x,y)$ space are sine wave-like functions in $(\rho, \theta)$ space
+       \begin{figure}[H]
+        \centering
+        \includegraphics[width=\textwidth]{images/hough_transform_rho_theta.png}
+        \caption{Transformation from original $(x,y)$ space to Hough $(\rho,\theta)$ space}
+       \end{figure}
+ \item Still use regular Hough Transform algorithm by looking for intersections of these transformed functions in $(\rho, \theta)$ space to get the $\rho,\theta$ parameter values
+ \item Again, the accumulator cells with the most votes are most likely the real lines in our image
+\end{itemize}
+
+\subsubsection{Hough Transform Advantages}
+\begin{itemize}
+ \item Conceptually simple
+ \item Easy implementation
+ \item handles missing and occluded data very gracefully
+ \item Can be adapted to many types of forms, not just lines
+\end{itemize}
+
+\subsubsection{Hough Transform Disadvantages}
+\begin{itemize}
+ \item Computational complex for objects with many parameters
+ \item Looks for only one single type of object
+ \item Can be ``fooled'' by ``apparent edges''
+ \item Length and position of a line segment cannot be determined
+ \item Co-linear segments cannot be separated
+\end{itemize}
+
+
 
 
 
