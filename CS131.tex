@@ -13,6 +13,10 @@
 \usepackage{listings}
 \usepackage{color}
 
+% For pseudo code
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
@@ -2276,7 +2280,7 @@
        \end{itemize}
  \item Good localization
        \begin{itemize}
-        \item Detected edges must be as close as possible ot the true edges
+        \item Detected edges must be as close as possible to the true edges
        \end{itemize}
  \item Single response
        \begin{itemize}
@@ -2362,7 +2366,7 @@
 \begin{itemize}
  \item Most widely used edge detector in computer vision
  \item Thoretical model: step edges corrupted by additive Gaussian noise
- \item Canny shows that 1\textsuperscript{st} derivative of Gaussian closely approximates the operator that optimizes the product of signal-to-noise ratio and lcoalization
+ \item Canny shows that 1\textsuperscript{st} derivative of Gaussian closely approximates the operator that optimizes the product of signal-to-noise ratio and localization
 \end{itemize}
 
 \subsubsection{Canny Edge Detector Features}
@@ -2519,6 +2523,393 @@
  \item Length and position of a line segment cannot be determined
  \item Co-linear segments cannot be separated
 \end{itemize}
+
+\section{Features and Fitting}
+\subsection{Fitting as Search in Parametric Space}
+\begin{itemize}
+ \item Choose a parameter model to represent a set of features
+ \item Membership criterion is not local
+       \begin{itemize}
+        \item Cannot tell whether a part belongs to a given model just by looking at only that point
+       \end{itemize}
+ \item 3 main questions
+       \begin{enumerate}
+        \item What model represents this set of features the best?
+        \item Which of several model instances get which features?
+        \item How many model instances are there?
+       \end{enumerate}
+ \item Computational complexity is important because it is infeasible to examine every possible set of parameters and every possible combo of features
+\end{itemize}
+
+\subsection{Voting}
+\begin{itemize}
+ \item Not feasible to check all combinations of features by fitting a model to each possible subset
+       \begin{description}
+        \item[voting]: let the features vote for all models that are compatible with it. Cycle through features, cast votes for model parameters, then look for model parameters that receive a lot of votes.
+       \end{description}
+ \item Noise and clutter features will cast votes too, but typically their votes should be inconsistent with majority o the good features
+ \item It is okay if some features are not observed, as model can span multiple fragments
+\end{itemize}
+
+
+\subsection{RAndom SAmple Consensus}
+\begin{description}
+ \item[RANSAC]: \underline{non-deterministic} approach that \underline{repeatedly samples random subsets} of data, uses them to fit the model, and classifies the remaining data points as \textbf{inliers} or \textbf{outliers} depending on how well they can be explained by the fitted model. The result is used for a final selection of data points used in achieveing the final model fit
+ \item[inlier]: data points close to the fitted model within a threshold (ex. 2 standard deviations or pre-determined number of pixels)
+ \item[outlier]: data points outside of threshold for fitted model
+\end{description}
+\begin{itemize}
+ \item RANSAC randomly selects samples of the data with the assumption that if enough samples are chosen, there will be a low probability that all samples provide a bad fit
+ \item Approach: avoid impact of outliers by looking instead for ``inliers'' to get model parameters
+ \item Intuition: if an outlier is chosen to compute the current fit, then the resulting line will not have much support from the rest of the points
+\end{itemize}
+
+\subsubsection{RANSAC Loop}
+\begin{enumerate}
+ \item Randomly select a seed group of points on which to base transformation estimate (ex. a group of matches)
+ \item Compute transformation from seed group
+ \item Fit inliers to this transformation
+ \item If the number of inliers is sufficiently large, re-compute least-squares estimate  transformation on all of the inliers
+ \item Keep only the transformation with largest number of inliers
+\end{enumerate}
+\begin{itemize}
+ \item A model is considered good if a big fraction fo the data is considered as ``inliers'' for that fit
+\end{itemize}
+\begin{figure}[H]
+ \centering
+ \includegraphics[width=\textwidth]{images/ransac_linear_fit.png}
+ \caption{Demonstration of the RANSAC algorithm for a linear model estimation and three random samples}
+\end{figure}
+
+\subsubsection{RANSAC Algorithm}
+\begin{algorithm}
+ \caption{RANSAC Algorithm}
+ \begin{algorithmic}[1]
+  \State Determine $n, t, d, k$
+  \State \quad $n$ - smallest number of points required for model fit (ex. $n=2$ for lines)
+  \State \quad $k$ - number of samples required
+  \State \quad $t$ - threshold used to identify inliers
+  \State \quad $d$ - number of nearby points required to asset that a model fits well
+  \Repeat
+  \State draw a sample of $n$ points from the data uniformly and at random
+  \State fit to that set of $n$ points
+  \For {each data point outside the sample}
+  \State test the distance from the point to the line against $t$
+  \If {distance from point to line $<t$}
+  \State data point is an inlier
+  \EndIf
+  \EndFor
+  \If {there are $d$ or more inliers}
+  \State there is a good fit
+  \State refit the line using all these points
+  \State \textbf{return} fit
+  \EndIf
+  \Until {there is a good fit or $k$ iterations have occurred}
+ \end{algorithmic}
+\end{algorithm}
+
+\subsubsection{How many samples are required}
+\begin{itemize}
+ \item Since RANSAC is a non-deterministic model fitting approach, the number of samples needs to be large enough to provide a high confidence estimate of parameters
+ \item Number of required samples depends on
+       \begin{enumerate}
+        \item Number of fitted parameters
+        \item Amount of noise
+       \end{enumerate}
+ \item More samples required for estimating bigger models and noisier data
+ \item Suppose $W$ is the fraction of inliers
+ \item $k$ samples are chosen to meet a desired success rate $p$
+       \paragraph{Probability that a single sample of $n$ points is correct} $W^n$
+       \paragraph{Probability that all $k$ samples fail}
+       \begin{align}
+        P_f = (1-W^n)^k = 1-p
+       \end{align}
+       \paragraph{Minimum number of samples $k$}
+       \begin{align}
+        k = \frac{\log(1-p)}{\log(1-W^n)}
+       \end{align}
+\end{itemize}
+
+\subsubsection{RANSAC Advantages}
+\begin{enumerate}
+ \item General method suited for a wide range of model fitting problems
+ \item Easy to implement and easy to calculate its failure rate
+\end{enumerate}
+
+\subsubsection{RANSAC Disadvantages}
+\begin{enumerate}
+ \item Only handles a moderate percentage of outliers without cost blowing up
+ \item Many real problems have a high rate of outliers
+       \begin{itemize}
+        \item The noisier an image is, the less likely it is for a line to ever be considered sufficiently good at fitting the data
+        \item But sometimes selective choice of random subsets can help
+       \end{itemize}
+ \item A voting strategy (ex. Hough Transform) can handle high percentage of outliers
+\end{enumerate}
+
+\subsection{Local Features}
+\begin{itemize}
+ \item Local features used instead of ``global'' features (ex. cross-correlation) because they are more robust
+ \item Local features are robust to
+       \begin{itemize}
+        \item Occlusions
+        \item Articulation (components attached via joints and can move with respect to one another)
+        \item  Intra-category variation
+       \end{itemize}
+\end{itemize}
+
+\subsubsection{General Approach}
+\begin{enumerate}
+ \item Find a set of distinctive keypoints
+ \item Define a region around each keypoint
+ \item Extract and normalize region content
+ \item Compute a local descriptor from the normalized region
+ \item Match local descriptors
+\end{enumerate}
+\begin{figure}[H]
+ \includegraphics[width=10cm]{images/local_feature_ex.png}
+ \caption{The local features are identified within similar pictures; descriptors are calculated for normalized patches and compared to each other for quantifying the similarity}
+\end{figure}
+
+\subsubsection{Invariance to Geometric Transformations}
+\begin{itemize}
+ \item Levels of geometric invariance
+       \begin{enumerate}
+        \item Translation
+        \item Euclidean (rotation)
+        \item Similarity (scaling)
+        \item Affine (out of plane)
+        \item Projective
+       \end{enumerate}
+ \item photometric transformations are often modelled as a linear transformation (scaling + translation)
+\end{itemize}
+
+\subsubsection{Requirements of Good Local Feature Detectors}
+\begin{itemize}
+ \item \textbf{Repeatability and accuracy}: given same object/scene under different image conditions, a high amount of features should be detectable in both images being compared
+       \begin{itemize}
+        \item \textbf{invariant} to translation, rotation, scale changes
+        \item \textbf{robust} or \textbf{covariant} to out of plane (affine) transformations
+        \item \textbf{robust} to lighting variations, noise, blur, quantization
+       \end{itemize}
+ \item \textbf{Locality}: features are local, thus robust to occlusion and clutter
+ \item \textbf{Quantity}: enough features should be identified to ensure accuracy of techniques relying on descriptors like object detection
+ \item \textbf{Distinctiveness}: regions should contain ``interesting'' structure
+       \begin{itemize}
+        \item Large amount of variation between detected features ensures they can be distinguished from each other and properly matched between different images
+       \end{itemize}
+ \item \textbf{Efficiency}: close to real-time performance
+\end{itemize}
+
+\subsection{Keypoint Localization}
+\begin{itemize}
+ \item Goals:
+       \begin{itemize}
+        \item Repeatable detection
+        \item Precise localization
+        \item Interesting content
+       \end{itemize}
+ \item Look for 2D signal changes
+ \item \textbf{locality}: point should be easily recognizable by looking through a small window
+ \item \textbf{good localization}: shifting the window in any direction should give a large change in intensity
+\end{itemize}
+
+\subsection{Finding Corners}
+\begin{itemize}
+ \item Key Property: in the region around a corner, the image gradient has 2 or more dominant directions
+ \item Corners are \textbf{repeatable} and \textbf{distinctive} in most images and are thus useful features to identify
+\end{itemize}
+\begin{figure}
+ \centering
+ \includegraphics[width=10cm]{images/flat_edge_corner.png}
+ \caption{Flat vs edge vs corner regions}
+\end{figure}
+
+\subsection{Harris Detector}
+\begin{itemize}
+ \item Intuition: if a window $w$ slides over an image, the \underline{change in intensity} of pixel values caused by the shift is \underline{highest at corners}
+       \begin{itemize}
+        \item Because change in pixel intensity is observed in both directions ($I_x$ and $I_y$ both large), while it is limited to only one direction at the edges (only one of $I_x$ or $I_y$ is large), and it is negligible at flat image regions
+       \end{itemize}
+ \item Change of intensity for the shift $[u,v]$
+       \begin{align}
+        E(u,v) = \sum\limits_{x,y} \underbrace{w(x,y)}_\text{window function} \bigg[ \underbrace{I(x+w,y+v)}_\text{shifted intensity}-\underbrace{I(x,y)}_\text{intensity}\bigg]
+       \end{align}
+ \item Note: $I_x$ and $I_y$ refer to the image gradient with respect to $x$ and $y$
+ \item Window function can either be discrete (1 inside window, 0 outside) or a Gaussian that slowly drops off
+ \item To find corners, we need to max this ``intensity change`` function
+ \item Using Taylor Expansion
+       \begin{align}
+        E(u,v) \approx
+        \begin{bmatrix}
+         u & v
+        \end{bmatrix}
+        \matr{M}
+        \begin{bmatrix}
+         u \\
+         v
+        \end{bmatrix}
+       \end{align}
+ \item where $\matr{M}$ is a $2 \times 2$ matrix computed from image derivatives summed over image region area that we are checking for a corner
+       \begin{align}
+        \matr{M} = \sum\limits_{x,y} w(x,y)
+        \begin{bmatrix}
+         I^2_x   & I_x I_y \\
+         I_x I_y & I^2_y
+        \end{bmatrix}
+       \end{align}
+       \begin{align}
+        \matr{M} = \begin{bmatrix}
+         \sum I_x I_x & \sum I_x I_y \\
+         \sum I_x I_y & \sum I_y I_y
+        \end{bmatrix}
+        = \begin{bmatrix}
+         I_x \\
+         I_y
+        \end{bmatrix}
+        \begin{bmatrix}
+         I_x & I_y
+        \end{bmatrix}
+       \end{align}
+ \item Consider an axis-aligned corner
+       \begin{align}
+        \matr{M} = \begin{bmatrix}
+         \sum I_x I_x & \sum I_x I_y \\
+         \sum I_x I_y & \sum I_y I_y
+        \end{bmatrix}
+        = \begin{bmatrix}
+         \lambda_1 & 0         \\
+         0         & \lambda_2
+        \end{bmatrix}
+       \end{align}
+ \item This means that dominant gradient directions aligned with $x-,y-$ axis
+ \item If either $\lambda \approx 0$, then this is not a corner
+ \item i.e look for locations where both $\lambda_1, \lambda_2$ are large
+\end{itemize}
+
+\subsubsection{General Case for Harris Corner Detector }
+\begin{itemize}
+ \item Since $\matr{M}$ is symmetric, we can use eigenvalue decomposition to get
+       \begin{align}
+        \matr{M} = \matr{R}^{-1} \begin{bmatrix}
+         \lambda_1 & 0         \\
+         0         & \lambda_2
+        \end{bmatrix}
+        \matr{R}
+       \end{align}
+ \item We can think of $\matr{M}$ as an ellipse with axis lengths determined by the eigenvalues and orientation determined by $\matr{R}$
+\end{itemize}
+
+\begin{figure}[H]
+ \centering
+ \includegraphics[scale=0.5]{images/eigenvalues_harris.png}
+ \caption{The visualization of theta thresholds from Corner Response Function ($\theta$) indicating corner, edge, or flat regions. Source: Lecture 6 slides}
+\end{figure}
+
+\subsubsection{Corner Response Function}
+\begin{description}
+ \item[Corner response function $\theta$]:
+       \begin{align}
+        \theta = \det(\matr{M}) - \alpha \tr(\matr{M}) = \lambda_1 \lambda_2 - \alpha(\lambda_1 + \lambda_2)^2
+       \end{align}
+\end{description}
+\begin{itemize}
+ \item Corner response function $\theta$ is a fast approximation
+       \begin{itemize}
+        \item Avoid computing eigenvalues (computationally expensive)
+        \item $\alpha$ is a constant around 0.04 to 0.06
+       \end{itemize}
+\end{itemize}
+
+\subsubsection{Window Function}
+\begin{itemize}
+ \item Window function $w(x,y)$ can either be
+       \begin{enumerate}
+        \item Uniform window
+              \begin{align}
+               \matr{M} = \sum\limits_{x,y} w(x,y)
+               \begin{bmatrix}
+                I^2_x   & I_x I_y \\
+                I_x I_y & I^2_y
+               \end{bmatrix}
+              \end{align}
+              \begin{itemize}
+               \item Sum over square window equally
+               \item Not rotation invariant
+              \end{itemize}
+        \item Gaussian smoothed window
+              \begin{align}
+               \matr{M} = g(\sigma) *
+               \begin{bmatrix}
+                I^2_x   & I_x I_y \\
+                I_x I_y & I^2_y
+               \end{bmatrix}
+              \end{align}
+              \begin{itemize}
+               \item Weighted sum over square window
+               \item Result is rotation invariant
+              \end{itemize}
+       \end{enumerate}
+\end{itemize}
+
+
+\subsubsection{Harris Detector Summary}
+\begin{itemize}
+ \item Compute 2\textsuperscript{nd} moment matrix (auto correlation matrix)
+       \begin{align}
+        \matr{M}(\sigma_I,\sigma_D) = g(\sigma_I) *
+        \begin{bmatrix}
+         I^2_x(\sigma_D)   & I_x I_y(\sigma_D) \\
+         I_x I_y(\sigma_D) & I^2_y(\sigma_D)
+        \end{bmatrix}
+       \end{align}
+       \begin{description}
+        \item[$\sigma_D$] Gaussian for derivative calculation
+        \item[$\sigma_I$] Gaussian for window function
+        \item[Corner response function]: 2 strong eigenvalues
+              \begin{align}
+               \theta & = \det[\matr{M}(\sigma_I, \sigma_D)] - \alpha[\tr(\matr{M},\sigma_I,\sigma_D)] \\
+                      & = g(I_x^2)g(I_y^2) - [g(I_x I_y)]^2 - \alpha[g(I_x^2) + g(I_y^2)]^2
+              \end{align}
+       \end{description}
+ \item Perform non-maximum suppression
+       \begin{itemize}
+        \item Take only local maxima of $\theta$, where $\theta >$ threshold
+       \end{itemize}
+ \item Harris detector is a very precise corner detector
+ \item Good for finding stereo correspondences
+\end{itemize}
+
+\subsubsection{Harris Detector Properties}
+\begin{itemize}
+ \item Translation invariant
+ \item Rotation invariant
+       \begin{itemize}
+        \item Ellipse rotates but its shape (i.e. eigenvalues) remains the same
+        \item Thus corner response $\theta$ is invariant to image rotation
+       \end{itemize}
+ \item \textbf{Not}  invariant to image scale
+       \begin{itemize}
+        \item Size of window affects which corners are found
+       \end{itemize}
+\end{itemize}
+
+\subsection{Application: Image Stitching}
+\begin{itemize}
+ \item Detect feature points in both images
+ \item Find corresponding points
+ \item Use these points to align the images
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
 
 
 
