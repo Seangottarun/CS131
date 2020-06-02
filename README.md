@@ -1,19 +1,26 @@
 # CS131
 
-This repository contains my LaTeX notes and problem set solutions to Stanford's CS131 Computer Vision: Foundations and Applications.
+This repository contains my LaTeX notes and assignment solutions to Stanford's CS131 Computer Vision: Foundations and Applications.
 
 These notes are by no means a replacement for going through the actual material. They just contain points that I found interesting or important.
 
 If you find anything that needs to be fixed or can be improved, please let me know!
 
 **Full Disclosure:** I am not a student at Stanford so I've been learning the course material
-by reading the slides online, students' notes, and the textbook.
+by reading the slides online, students' notes, and the textbooks.
 
-Sources:
+**Status:** In progress 🚧
+
+- [My lecture notes](https://github.com/Seangottarun/CS131/tree/master/Lecture-Notes)
+- [My assignment solutions](https://github.com/Seangottarun/CS131/tree/master/Assignments)
+
+**Sources:**
 
 -   [2019/2020 Course Website](http://vision.stanford.edu/teaching/cs131_fall1920/index.html)
 
 -   [2016/2017 Course Materials](http://vision.stanford.edu/teaching/cs131_fall1617/schedule.html)
+
+-   [Course Assignments](https://github.com/StanfordVL/CS131_release)
 
 -   [StanfordVL notes GitHub repo](https://github.com/StanfordVL/cs131_notes)
 
