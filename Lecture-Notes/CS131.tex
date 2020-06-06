@@ -3215,10 +3215,244 @@
  \item SIFT descriptors use weights and varying scales to compute multiple descriptors
 \end{itemize}
 
+\section{Image Resizing with Seam Carving}
 
+\subsection{Content-Aware Retargeting}
+\begin{itemize}
+ \item Adjust image size and aspect ratio for different screens based on image content
+ \item Options:
+       \begin{enumerate}
+        \item Scale
+        \item Crop
+        \item Seam Carving
+       \end{enumerate}
+\end{itemize}
 
+\subsection{Image/Video Retargeting}
+\begin{itemize}
+ \item \textbf{Input:} $n \times m$ image $\matr{I}$ and new size $n' \times m'$
+ \item \textbf{Output:} $n' \times m'$ image $\matr{I}'$ that is a ``good representative'' of the original image $\matr{I}$
+ \item However, ``good representative'' is subjective
+ \item We expect retargeting to
+       \begin{enumerate}
+        \item Adhere to geometric constraints (display/aspect ratio)
+        \item Preserve important content and structures
+        \item Limit artifacts
+       \end{enumerate}
+ \item Note: image retargeting is a very ill-posed problem
+ \item How do we define important? What about artistic expression?
+\end{itemize}
 
+\subsection{Importance (Saliency) Measures}
+\begin{description}
+ \item[Importance measure]: A function $S: p \to [0.1]$
+\end{description}
+\begin{itemize}
+ \item More sophisticated importance measures use attention models, eye tracking, gaze studies, face detectors
+\end{itemize}
 
+\subsection{General Retargeting Framework and Pixel Energy}
+\begin{enumerate}
+ \item Define an \textbf{energy function} $E(\matr{I})$ to measure importance (higher energy \lra more important)
+       \begin{itemize}
+        \item Specific energy function can vary
+        \item Usually use gradient magnitude and focus on edges
+       \end{itemize}
+ \item Use some operator(s) to change image $\matr{I}$
+       \begin{itemize}
+        \item Can recompose, crop, warp
+       \end{itemize}
+\end{enumerate}
+
+\subsection{Seam Carving}
+\begin{itemize}
+ \item Assume $m \times n \to m \times n'$ where $n' < n$ (i.e. \textbf{summarization})
+ \item Idea: remove unimportant pixels from image
+ \item Unimportant pixels are those with less ``energy''
+       \begin{align}
+        E_1(I) = \abs{\frac{\partial}{\partial x} I} + \abs{\frac{\partial}{\partial y} I}
+       \end{align}
+ \item Intuition for gradient based energy:
+       \begin{itemize}
+        \item Preserve strong contours
+        \item Human vision is more sensitive to edges so try to remove content from smoother regions
+        \item Usually good enough for nice results
+       \end{itemize}
+ \item Use pixel energy to determine paths of adjacent pixels (\textbf{seams}) with lowest combined pixel energy to remove from image
+\end{itemize}
+
+\subsubsection{Seams}
+\begin{description}
+ \item[Seam]: a connected path of pixels from top to bottom (or left to right). Exactly one seam pixel in each row for horizontal seams
+       \begin{align}
+        s^x & = \{s_i^x\}^n_{i=1} = \{(x(i), i)\}^n_{i=1} \quad s.t. \quad \forall i, \quad \abs{x(i) - x(i-1)} \leq 1 \\
+        s^y & = \{s_j^x\}^m_{j=1} = \{(j, y(j))\}^m_{j=1} \quad s.t. \quad \forall j, \quad \abs{y(j) - y(j-1)} \leq 1 \\
+       \end{align}
+ \item[Optimal seam]: seam with lowest energy $E(s)$
+       \begin{align}
+        s^* = \arg \min E(s)
+       \end{align}
+       \begin{align}
+        E(\matr{I}) = \abs{\frac{\partial}{\partial x} \matr{I}} + \abs{\frac{\partial}{\partial y} \matr{I}}
+       \end{align}
+ \item[Horizontal seam]: seam going top to bottom
+ \item[Vertical seam]: seam going left to right
+\end{description}
+
+\subsubsection{Optimal Seam}
+\begin{itemize}
+ \item The recursive relation for optimal seam can be solved efficiently with dynamic programming in $O(m\cdot n\cdot m)$
+       \begin{align}
+        M(i,j) = \underbrace{E(i,j)}_\text{Energy} + \underbrace{\min(M(i-1, j-1), M(i-1, j-1), M(i+1, j-1))}_\text{smallest of neighbours above}
+       \end{align}
+ \item Note: $M(i,j)$ denotes the minimal energy cost of a seam going through pixel $(i,j)$
+\end{itemize}
+
+\subsubsection{Searching for Minimum}
+\begin{itemize}
+ \item Iterate backwards to search for optimal seam
+ \item Start at bottom with smallest energy and then choose smallest neighbour above while backtracking to the top
+\end{itemize}
+
+\subsubsection{Seam Carving Algorithm}
+\begin{algorithm}
+ \caption{Seam Carving Algorithm}
+ \begin{algorithmic}[1]
+  \Procedure{Seam Carving}{$im$, $n'$} \Comment{size($im$) = $m \times n$}
+  \State \quad $im$ - original image of size $m \times n$
+  \State \quad $n'$ - desired image size $n'$
+  \For{$i < (n-n')$}
+  \State Compute energy map $E$ on $m$ \
+  \State Find optimal seam $S$ in $E$
+  \State Remove seam $S$ from image im
+  \State $i = i + 1$
+  \EndFor
+  \State \textbf{return} $m$
+  \EndProcedure
+ \end{algorithmic}
+\end{algorithm}
+\begin{itemize}
+ \item For vertical resize, transpose the image and use same algorithm
+ \item Running time: for each update of $E$, $s$ and $im$, the complexity is $O(mn)$ \lra overall complexity is $O((n-n')mn)$
+ \item Note: result of seam carving is the same if the image is flipped
+ \item Can improve running time by accounting for locality of operators
+ \item While resizing, remove \underline{as many} low energy pixels and \underline{as few} high energy pixels
+ \item Thus, seam carving increases the average energy of the pixels
+\end{itemize}
+
+\subsubsection{Seam Carving in 2D}
+\begin{itemize}
+ \item How to choose whether to remove horizontal or vertical seams first or alternate?
+ \item Solution: optimal order found with dynamic programming
+ \item Recurrence relation is
+       \begin{align}
+        T(r,c)=min(T(r-1,c)+E(s^x(I_{n-r-1\times m-c})),T(r,c-1)+E(s^y(I_{n-r\times m-c-1})))
+       \end{align}
+\end{itemize}
+
+\subsection{Image Expansion}
+\begin{itemize}
+ \item To increase size of image, expand least important areas of the image (from seams)
+ \item Naive approach: duplicate lowest energy seam
+       \begin{itemize}
+        \item Poor quality expansion
+       \end{itemize}
+ \item Better approach: find the lowest $k$ seams and duplicate each once
+       \begin{itemize}
+        \item Note: this approach can only enlarge the image by a factor of 2 (not enough seams to duplicate)
+       \end{itemize}
+\end{itemize}
+
+\subsubsection{Multi-Size Images}
+\begin{itemize}
+ \item Can create new representations of the image that will adapt to different sizes
+       \begin{enumerate}
+        \item Precompute all seams once and store energy values
+        \item Realtime resizing by removing $k$ lowest energy seams
+       \end{enumerate}
+\end{itemize}
+
+\subsection{Object Removal}
+\begin{itemize}
+ \item Let users specify which areas of image are high or low energy
+ \item Use seam carving to specifically preserve/remove objects by choosing seams that pass/do not pass through the identified objects
+\end{itemize}
+
+\subsection{Seam Carving Limitations}
+\begin{itemize}
+ \item Seam carving generally effective for image resizing but has limitations:
+       \begin{enumerate}
+        \item Effectiveness changes as size of image is drastically changed (works best on large images)
+        \item Fails to recognize important features in context of an object that have low energy
+              \begin{itemize}
+               \item ex. face cheeks and forehead are smooth have low energy but are important to the context
+               \item Need to adjust energy function (ex. use face detector)
+              \end{itemize}
+       \end{enumerate}
+\end{itemize}
+
+\subsection{Forward Energy}
+
+\subsubsection{Minimize Inserted Energy}
+\begin{itemize}
+ \item Recall seam equation
+       \begin{align}
+        M(i,j) = E(i,j) + \min(M(i-1, j-1), M(i-1, j-1), M(i+1, j-1))
+       \end{align}
+ \item Note: when removing some seams, more energy may be added than removed (because removing seams may create new edges)
+ \item Instead of removing seam of least energy, remove the seam that \underline{inserts the least energy} into the image
+ \item Modify accumulated cost matrix by adding forward energy from corresponding new neighbours
+\end{itemize}
+
+\subsection{Tracking Inserted Energy}
+\begin{itemize}
+ \item 3 possibilities
+       \begin{align}
+        C_L(i,j) & = \abs{I(i,j+1) - I(i,j-1)} + \abs{I(i-1,j) + I(i, j-1)} \\
+        C_R(i,j) & = \abs{I(i,j+1) - I(i,j-1)} + \abs{I(i-1,j) + I(i, j+1)} \\
+        C_U(i,j) & = \abs{I(i,j+1) - I(i,j-1)}
+       \end{align}
+       \begin{figure}
+        \centering
+        \includegraphics[width=15cm]{images/forward_energy_calculation.jpg}
+        \caption{Forward energy calculations}
+       \end{figure}
+\end{itemize}
+
+\subsubsection{Old ``Backward'' Energy}
+\begin{align}
+ M(i,j) = E(i,j) + \min(M(i-1, j-1), M(i-1, j-1), M(i+1, j-1))
+\end{align}
+
+\subsubsection{New ``Forward'' Energy}
+\begin{align}
+ M(i,j) = min(M(i-1, j-1) + C_L(i,j), M(i-1, j-1) + C_U(i,j), M(i+1, j-1)) + C_r(i,j)
+\end{align}
+
+\subsection{From Images to Videos}
+\begin{itemize}
+ \item Generally video processing is a much harder problem
+       \begin{enumerate}
+        \item Cardinality
+              \begin{itemize}
+               \item Suppose 1 min of video at 30 fps = 1800 frames
+               \item Say your algorithm processes an image in 1 min \lra 30 hours
+              \end{itemize}
+        \item Dimensionality
+              \begin{itemize}
+               \item Temporal coherency: human visual system high sensitive to motion
+               \item Naive approach of processing frames independently may not preserve important content with respect to relation of consecutive frames
+              \end{itemize}
+       \end{enumerate}
+ \item Naive approach: apply seam carving frame-by-frame independently
+       \begin{itemize}
+        \item Very jittery with artifacts
+       \end{itemize}
+ \item Better approach: treat video as 3D volume (stack of images) and use a graph based approach to seam carving that lets seam vary in position and time
+       \begin{itemize}
+        \item Lowest energy 2D seam can be calculated throughout the entire video's length
+       \end{itemize}
+\end{itemize}
 
 
 
