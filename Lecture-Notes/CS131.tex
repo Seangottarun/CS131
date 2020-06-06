@@ -2901,6 +2901,324 @@
  \item Use these points to align the images
 \end{itemize}
 
+\section{Feature Descriptors}
+
+\subsection{Scale Invariant Detection}
+\begin{figure}
+ \centering
+ \includegraphics[scale=0.5]{images/sift_scale_invariant.jpg}
+ \caption{Harris detector windows on an increased scale.. The three windows on the right are all classified as edges while the left only classifies one edge.}
+\end{figure}
+\begin{itemize}
+ \item Note: when detecting corners, the ``scale'' of the window used matters because it changes the number of corners you can detect (larger window, less corners)
+ \item Solution: design a "scale invariant" function which is the same for corresponding regions even if they are at different scales
+       \begin{itemize}
+        \item Represent scalable function as a circle, where each point on the circle is a function of the region size of the circle's radius
+        \item For a point in one image, we can consider it as a function of the region size (circle radius)
+       \end{itemize}
+\end{itemize}
+
+\subsubsection{General Approach}
+\begin{itemize}
+ \item Common approach: take a local max of this region
+       \begin{itemize}
+        \item Relative to the local maximum, the region size should be the same regardless of the size
+       \end{itemize}
+ \item Observation: region size for which maximum is achieved, should be \textbf{covariant} with image scale
+ \item Note: this scale invariant region is found in each image independently
+ \item A ``good'' function for scale detection has stable sharp peaks
+ \item For most images, a good function would be one which corresponds to contrast (sharp local changes)
+       \begin{figure}
+        \includegraphics[scale=0.5]{images/scaleinvariant.png}
+        \caption{Examples of different functions for finding local maxima}
+       \end{figure}
+\end{itemize}
+
+\subsubsection{Functions for determining scale: $f = kernel * image$}
+\begin{description}
+ \item[Laplacian]:
+       \begin{align}
+        \matr{L} = \sigma^2 (G_{xx}(x, y, \sigma) + G_{yy}(x, y, \sigma))
+       \end{align}
+ \item[Difference of Gaussians]:
+       \begin{align}
+        \textbf{DoG} = G(x, y, k\sigma) - G(x, y, \sigma)
+       \end{align}
+\end{description}
+
+\begin{itemize}
+ \item Where the 2D Gaussian is
+       \begin{align}
+        G(x, y, \sigma) = \frac{1}{\sqrt{2\pi}\sigma}e^{-\frac{x^2 + y^2}{2\sigma^2}}
+       \end{align}
+ \item Note: both of these kernels are \textbf{scale} and \textbf{rotation} invariant
+\end{itemize}
+
+\begin{figure}
+ \includegraphics[scale=0.75]{images/scale_invariant_detectors.png}
+ \caption{Scale Invariant detectors}
+\end{figure}
+
+\subsection{Scale invariant keypoint detection}
+\begin{itemize}
+ \item Need to be able to independently detect the same keypoints in images at different scales
+ \item With correctly scaled windows, can capture the ``same content'' in different scaled image
+ \item Consider 2 similar images at different scales
+ \item Can independently vary window size for each of the windows and plot the response of $f$(window) as a function of window size
+       \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.75\textwidth]{images/max.png}
+        \caption{Two plots of the response of $f(\text{window})$ as a function of window size for Images 1 and 2, where Image 2 is similar to Image 1 but scaled by $\frac{1}{2}$}
+       \end{figure}
+ \item Within each plot, can independently identify local extrema as keypoints
+ \item Window sizes corresponding to those extrema give us the scale different between the two images
+\end{itemize}
+
+\subsubsection{Average Intensity}
+\begin{itemize}
+ \item Could use average intensity as $f$(window) for determining maxima
+ \item Average intensity does not change as we scale the window up or down
+ \item However, average intensity is bad at capturing contrast or sharp changes within a window
+       \begin{itemize}
+        \item Makes it hard to find clear extrema when comparing $f$ across two images
+        \item Need derivatives to capture contrast
+       \end{itemize}
+\end{itemize}
+
+\subsubsection{Difference of Gaussians (DoG)}
+\begin{itemize}
+ \item Consider an image $I$
+       \begin{enumerate}
+        \item Repeatedly convolve $I$ with Gaussian filters of different $\sigma$'s
+        \item Convolutions repeated with scaled down (i.e. down-sampled) versions of $I$
+        \item Get a pyramid of Gaussians of different $\sigma$'s and different image sizes
+        \item Adjacent Gaussian-convolved images are then subtracted to calculate their difference of Gaussians (DoG)
+              \begin{align}
+               DoG(\sigma) = (G(k\sigma) - G(\sigma)) * I
+              \end{align}
+              \begin{figure}[h]
+               \centering
+               \includegraphics[width=0.45\textwidth]{images/dog_pyramid.jpg}
+               \caption{On the left: pyramid of Gaussians of different $\sigma$'s and different image sizes. On the right: difference of adjacent Gaussians}
+              \end{figure}
+       \end{enumerate}
+ \item Intuitively, these differences of Gaussians capture details about $I$ at different scales
+       \begin{itemize}
+        \item The difference of two Gaussians $\sigma_1$ and $\sigma_2$ remove all details that appear at both $\sigma_1$ and $\sigma_2$
+        \item Differences of Gaussians for small and large $\sigma$'s capture fine and coarse details, respectively
+       \end{itemize}
+ \item Given differences of Gaussians pyramid in x-y-scale space, we can now identify local extrema within that 3D space to identify both keypoints and their associated scales
+ \item Compare a given coordinate with all entries within $3 \times 3 \times 3$ neighbourhood
+ \item Coordinate is selected as an extrema if it is larger or smaller than all 26 neighbours
+       \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.3\textwidth]{images/maxima.png}
+        \caption{Given a coordinate in x-y-scale space (denoted by the black X), examine its 26 neighbours (denoted by the green circles) to determine if the original coordinate is a local extrema}
+       \end{figure}
+\end{itemize}
+
+\subsubsection{Harris-Laplacian}
+\begin{itemize}
+ \item Harris-Laplacian is more effective at scale-invariant keypoint detection than DoG but potentially more computaitonal expensive
+ \item Consider an image $I$
+       \begin{enumerate}
+        \item Create multiple scales of $I$ and run the Harris detector on each to localize keypoints per scale level
+        \item Select keypoints that maximize the Laplacian across all the scales
+       \end{enumerate}
+\end{itemize}
+
+\subsection{Scale Invariant Detection Summary}
+\begin{itemize}
+ \item Given: 2 images of same scene with a large scale difference between them
+ \item Goal: find same interest points independently on each image
+ \item Solution: search for maxima of a suitable function in scale and in space
+ \item Methods:
+       \begin{enumerate}
+        \item Harris Laplacian: maximize Laplacian over scale
+        \item SIFT: maximize Difference of Gaussians over scale and space
+       \end{enumerate}
+ \item At different resolutions of kernel size, we see different fine details of the image
+ \item i.e. we can capture keypoints at varying scales
+\end{itemize}
+\begin{description}
+ \item[Repeatability rate] $\frac{\text{\# of correspondences}}{\text{\# possible correspondences}}$
+\end{description}
+
+\subsection{Local Descriptors}
+\begin{itemize}
+ \item Point descriptors should be
+       \begin{enumerate}
+        \item Invariant
+        \item Distinctive
+       \end{enumerate}
+ \item Transform image content into local feature coordinates taht are invariant to translation, rotation, scale, and other imaging parameters
+\end{itemize}
+
+\subsubsection{Advantages of Invariant Local Features}
+\begin{enumerate}
+ \item \textbf{Locality}: features are local and thus robust to occlusion and clutter (no prior segmentation)
+ \item \textbf{Distinctiveness}: individual features can be identifiable from a large database of objects
+ \item \textbf{Quantity}: many features can be generated for even small objects
+ \item \textbf{Efficiency}: close to real-time performance
+ \item \textbf{Extensibility}: can easily be extended to wide range o differing feature types, with each adding robustness
+\end{enumerate}
+
+\subsection{Rotational Invariance}
+\begin{itemize}
+ \item Given a keypoint and its scale from DoG
+       \begin{enumerate}
+        \item Smooth (blur) the image associated with the keypoint's scale
+        \item Calculate the image gradients over the keypoint neighbourhood
+        \item Select a characteristic origentaiton for the keypoint (based on most promising gradient there)
+        \item Rotate the gradient directions and locations by negative keypoint orientation
+              \begin{itemize}
+               \item i.e. describe all features relative to the orientation
+               \item Causes features to be rotation invariant
+               \item If keypoint appears rotated in another image, the features will be the same since they are \underline{relative} to the same characteric orietnation
+              \end{itemize}
+       \end{enumerate}
+\end{itemize}
+
+\subsection{SIFT Descriptor Formulation}
+\begin{itemize}
+ \item Using precise gradient locations is fragile
+       \begin{itemize}
+        \item Want it robust to noise and still produce a very similar descriptor
+       \end{itemize}
+ \item Create array of orientation histograms and place gradients into local orientation histograms of 8 orienation bins
+       \begin{itemize}
+        \item A gradient's contribution is divided across the nearby histograms based on distance
+        \item If it is between two histogram contributions it gives half contribution to both
+        \item Also scale down gradient contributions for gradients far from the centre
+       \end{itemize}
+ \item SIFT authors found best results with 8 orientation bins per histogram and $4 \times 4$ histogram array
+ \item Thus, a SIFT descriptor is a length 128 vector which is invariant to
+       \begin{enumerate}
+        \item \textbf{rotation}: we rotated the descriptor
+        \item \textbf{scale}: we worked with a scaled image from DoG
+       \end{enumerate}
+ \item We can compare each vector from image A to each vector B to find matching keypoints
+       \begin{itemize}
+        \item Euclidean ``distance'' between descriptor vectors gives a good measure of keypoint similarity
+       \end{itemize}
+\end{itemize}
+\begin{figure}
+ \centering
+ \includegraphics[scale=0.75]{images/gradient_rotation.png}
+ \caption{Rotate gradients by $-\theta$ and then measure other gradients' orientation relative to the largest gradient}
+\end{figure}
+\begin{figure}
+ \centering
+ \includegraphics[scale=0.75]{images/orientation_histogram.png}
+ \caption{Converting gradient into orientation histogram}
+\end{figure}
+\begin{figure}
+ \centering
+ \includegraphics[scale=0.75]{images/orientatioN_histogram_array.png}
+ \caption{$4 \times 4$ array of orientation histogram that describes keypoint}
+\end{figure}
+
+\subsubsection{Adding robustness to Illumination Changes}
+\begin{itemize}
+ \item Recall that descriptor is magnitude of gradients (difference  between points) so it's already invariant to changes in overall brightness (ex. adding 10 to all pixel values gives the same descriptor)
+ \item A higher-contrast photo will increase the magnitude of the gradients linearly
+       \begin{itemize}
+        \item So to correct for contrast changes, normalize the vector (scale to length 1.0)
+       \end{itemize}
+ \item Very large image gradients are usually due to unreliable 3D illumination effects (ex. glare)
+       \begin{itemize}
+        \item Reduce this effect by forcing all values in vector to be $\leq 0.1$ (an experimentally tuned value) and then normalize vector again
+       \end{itemize}
+ \item Result: descriptor vector is fairly invariant to illumination changes
+\end{itemize}
+
+\subsubsection{SIFT Algorithm}
+\begin{enumerate}
+ \item Create an array of orientation histograms
+ \item Put rotated gradients into local orientation histograms, where each histogram contributes to the nearby histograms based on distance (far gradients scaled down)
+       \begin{itemize}
+        \item Best results with 8 orientation bins per histogram and a $4 \times 4$ histogram array
+       \end{itemize}
+ \item Compare each vector between two images to find matching keypoints
+ \item To add robustness to illumination changes in high contrast photos, normalize the vectors before comparison
+       \begin{itemize}
+        \item Mitigates unreliable 3D illumination effects like glare that are caused by very large image gradients
+        \item Clip values in vector to under 0.2 (experimentally tuned) before normalizing again
+       \end{itemize}
+\end{enumerate}
+
+\subsection{Applications of Local Invariant Features}
+\begin{enumerate}
+ \item Automate mosaicing
+ \item Wide baseline stereo
+ \item Recognition of specific objects, scenes
+ \item Motion tacking
+ \item Mobile robot navigation
+ \item 3D reconstruction
+\end{enumerate}
+
+\subsection{Histogram of Oriented Gradients}
+\begin{itemize}
+ \item Find robust feature set that allows object form to be distinguished
+ \item Challenges:
+       \begin{enumerate}
+        \item Wide range of pose and large variations in appearance
+        \item Cluttered backgrounds under different illumination
+        \item ``Speed'' for mobile vision
+       \end{enumerate}
+ \item Local object appearances and shape can often be characterized pretty well by the distribution of local intensity gradients on edge directions
+ \item Divides image window into small spatial regions (cells)
+ \item Cells can either be rectangle or radial
+ \item Each cell accumulates a weighted local 1D histogram of gradient direction over the pixels of the cell
+\end{itemize}
+
+\subsubsection{Normalization}
+\begin{itemize}
+ \item For better invariance to illumination and shadows, it is useful to contrast normalize the local responses before using them
+ \item Accumulate local histogram "events" over a larger region (``blocks'') to normalize all the cells of the block
+\end{itemize}
+
+\subsubsection{HoG Algorithm}
+\begin{enumerate}
+ \item Divide image window into small spatial regions or cells
+ \item For each cell, accumulate a local histogram
+       \begin{itemize}
+        \item Group gradient directions into evenly-spaced bins
+        \item Allocate magnitude of a pixel's gradients into the appropriate bin corresponding to the gradient direction
+       \end{itemize}
+ \item Normalize local histograms over a larger region called a ``block'' comprised of cells
+       \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.75\textwidth]{images/histogram2.png}
+        \caption{Visual example of keeping track of the magnitudes of the gradients for each gradient direction.}
+       \end{figure}
+\end{enumerate}
+
+\subsubsection{Drawacks of HoG}
+\begin{enumerate}
+ \item Large variations and ranges when detecting
+ \item Very slow
+ \item Not very organized when backgrounds have different illuminations
+       \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.75\textwidth]{images/bike}
+        \caption{HoG applied to a bicycle.}
+       \end{figure}
+\end{enumerate}
+
+\subsection{Differences between HoG and SIFT}
+\begin{itemize}
+ \item HoG usually used to describe entire images
+ \item SIFT used for keypoint matching
+ \item SIFT histograms oriented towards dominant gradient; HoG does not
+ \item HoG gradients are normalized using neighbourhood bins
+ \item SIFT descriptors use weights and varying scales to compute multiple descriptors
+\end{itemize}
+
+
+
+
+
 
 
 
