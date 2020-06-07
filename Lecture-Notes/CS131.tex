@@ -55,6 +55,11 @@
 \DeclareMathOperator{\tr}{tr}
 \DeclareMathOperator{\rank}{rank}
 \DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\dist}{dist}
+\DeclareMathOperator{\simi}{sim}
+\DeclareMathOperator{\merge}{merge}
+\DeclareMathOperator{\dif}{dif}
+\DeclareMathOperator{\ini}{in}
 
 % Theorem commands
 \newtheorem{lem}{Lemma}
@@ -3452,6 +3457,301 @@
        \begin{itemize}
         \item Lowest energy 2D seam can be calculated throughout the entire video's length
        \end{itemize}
+\end{itemize}
+
+\section{Clustering and Segmentation}
+
+\subsection{Image Segmentation}
+\begin{itemize}
+ \item Goal: identify groups of pixels that belong together
+ \item Separate image into coherent objects
+       \begin{itemize}
+        \item If we can properly segment an image, we can selectively keep the groups of pixels that we want
+        \item ex. background removal
+       \end{itemize}
+ \item Segmentation for feature support
+ \item Segmentation for efficiency
+ \item Segmentation as a result
+       \begin{description}
+        \item[Superpixels]: groups of similar nearby pixels that allow us to treat many individual pixels as one cluster \lra faster computations
+       \end{description}
+\end{itemize}
+
+\subsubsection{Types of Segmentation}
+\begin{enumerate}
+ \item Over-segmentation: too many clusters
+ \item Under-segmentation: too little clusters
+ \item Multiple segmentation: even a properly segmented photo can have multiple different possible groupings
+\end{enumerate}
+
+\subsection{``Segmentation'' is Clustering}
+\begin{description}
+ \item[Clustering]: group together similar data points and represent them as a single token
+\end{description}
+\begin{itemize}
+ \item What makes 2 points/images/patches similar?
+ \item How do we compute an overall grouping from pairwise similarity?
+\end{itemize}
+
+\subsection{Why do we cluster?}
+\begin{enumerate}
+ \item Summarizing data
+       \begin{itemize}
+        \item Looking at large amounts of data
+        \item Patch-based compression or denoising
+        \item Represent as a large continuous vector with the cluster number
+       \end{itemize}
+ \item Counting
+       \begin{itemize}
+        \item Histograms of texture, colour, SIFT vectors
+       \end{itemize}
+ \item Segmentation
+       \begin{itemize}
+        \item Separate image into different regions
+       \end{itemize}
+ \item Prediction
+       \begin{itemize}
+        \item Images in same cluster may have the same labels
+       \end{itemize}
+ \item Agglomerative clusters
+       \begin{itemize}
+        \item Start with each point as its own cluster and iteratively merge closest clusters
+       \end{itemize}
+ \item K-means
+       \begin{itemize}
+        \item Iteratively re-assign points to nearest cluster centre
+       \end{itemize}
+ \item Mean-shift clustering
+       \begin{itemize}
+        \item Estimate modes of pdf
+       \end{itemize}
+\end{enumerate}
+
+\subsubsection{Clustering Concepts}
+\begin{description}
+ \item[Tokens]: whatever we need to group (ex. pixels, points, surface elements, etc.)
+ \item[Bottom-up clustering]: tokens belong together because they are locally coherent
+ \item[Top-down clustering]: tokens belong together because they lie on the same visual entity (object, scene)
+\end{description}
+\begin{itemize}
+ \item Note: bottom-up and top-down clustering are not mutually exclusive
+\end{itemize}
+
+\subsection{Examples of Grouping in Vision}
+\begin{enumerate}
+ \item Determining image regions
+ \item Grouping video frames into shots
+ \item Figure-ground
+ \item Object-level grouping
+\end{enumerate}
+\begin{itemize}
+ \item What things should be grouped? What cues indicate groups?
+       \begin{enumerate}
+        \item Similarity
+        \item Symmetry
+        \item Common fate
+              \begin{itemize}
+               \item i.e. group of objects that appear to be moving together and thus have the same ``fate''
+              \end{itemize}
+        \item Proximity
+              \begin{itemize}
+               \item Group objects that appear to be close together
+              \end{itemize}
+       \end{enumerate}
+\end{itemize}
+
+\subsection{Gestalt Theory for Perceptual Grouping}
+\begin{itemize}
+ \item Segmentation draws inspiration from the Gestalt Theory of Visual Perception
+       \begin{description}
+        \item[Gestalt Theory of Visual Perception]: Grouping is key to visual perception; the ``the whole is greater than the sum of its parts'' because relationships between parts can yield new properties and features
+       \end{description}
+ \item Gestalt theory defines Gestalt factors, which are properties that can define groups in images
+       \begin{figure}
+        \centering
+        \includegraphics[width=0.8\textwidth]{images/gestalt-factors.png}
+        \caption{Examples of Gestalt factors}
+       \end{figure}
+ \item Note: establishing the foreground and background is important
+ \item ex. face and cup
+ \item Gestalt factors are intuitive but are hard to translate into algorithms
+\end{itemize}
+
+\subsection{Clustering distance measures}
+\begin{description}
+ \item[Clustering]: unsupervised learning method where we are given items $x_1, \dots, x_n \in \mathbb{R}^D$ and want to group them into clusters without knowing the correct label/cluster. We need a pairwise distance/similarity function between items and sometimes the desired number of clusters
+ \item[Agglomerative clustering]: common clustering technique which looks at the similarities between points to decide how they shoudl be grouped
+\end{description}
+\begin{itemize}
+ \item Let $x$ and $x'$ be 2 objects form the universe of possible objects
+ \item The \textbf{distance (similarity)} between $x$ and $x'$ is a real number denoted by $\simi(x,x')$
+       \begin{description}
+        \item[Euclidean distance]: measures distance between two data points $x$ and $x'$ by accounting for angle and magnitude. Does not normalize the vectors so magnitude is considered.
+              \begin{align}
+               \dist(x,x') = \sqrt{\sum (x_i - x_i')^2}
+              \end{align}
+        \item[Cosine similarity]: only accounts for angle between two data points $x$ and $x'$; only represents \underline{similarity}, not distance. Magnitude is not considered since it is normalized
+              \begin{align}
+               \simi(x,x') & = \cos(\theta)                              \\
+                           & = \frac{x^T x'}{\norm{x}\norm{x'}}          \\
+                           & = \frac{x^T x'}{\sqrt{x^T x}\sqrt{x'^T x'}}
+              \end{align}
+       \end{description}
+\end{itemize}
+
+\subsubsection{Desirable properties of Clustering Algorithms}
+\begin{enumerate}
+ \item \textbf{Scalability} in time and space
+ \item \textbf{Adaptability} to different data types
+       \begin{itemize}
+        \item Algorithm should support arbitrary data in $\mathbb{R}^d$ for all $d$
+       \end{itemize}
+ \item \textbf{Minimal requirements} for domain knowledge to determine input parameters
+       \begin{itemize}
+        \item Parameter tuning should not be difficult
+       \end{itemize}
+ \item \textbf{Interpretability}
+ \item \textbf{Constraints} for incorporating user-specified constraints
+\end{enumerate}
+
+\subsection{Agglomerative Clustering}
+\begin{description}
+ \item[Agglomerative clustering]: calculates similarities among data points by grouping closer points together. Newly created groups can further be merged to other close groups. Iterative process creates a hierarchy (dendrogram)
+\end{description}
+\begin{enumerate}
+ \item Set ``every point as its own cluster''
+ \item Find ``most similar pair'' of clusters
+ \item Merge pair into a parent cluster
+ \item Repeat
+\end{enumerate}
+\begin{itemize}
+ \item Can define cluster similarity by
+       \begin{itemize}
+        \item Average distance between points
+        \item Minimum distance
+        \item Maximum distance
+        \item Distance between means or medoids
+        \item Note: distance function used can highly affect results
+       \end{itemize}
+ \item How many clusters?
+       \begin{itemize}
+        \item Clustering creates a dendrogram (a tree)
+        \item Threshold based on max number of clusters or based on distance between merges
+        \item Note: can cut dendrogram horizontally at different levels to create as many clusters as we wnat
+       \end{itemize}
+       \begin{figure}
+        \centering
+        \includegraphics[width=0.70\textwidth]{images/dendrogram2.png}
+        \caption{figure}{Agglomerative clustering on sample input, and resulting dendrogram}
+       \end{figure}
+\end{itemize}
+
+\subsubsection{Agglomerative Hierarchical Clustering Algorithm}
+\begin{enumerate}
+ \item Initially, each of the $x_1, \dots, x_n$ is in its own cluster $C_1, \dots C_n$
+ \item Repeat until there is only one cluster left
+ \item \quad\quad Merge the nearest clusters $C_i$ and $C_j$
+\end{enumerate}
+
+
+\subsubsection{Different Measures of Nearest Clusters}
+\begin{enumerate}
+ \item \textbf{Single link}
+       \begin{description}
+        \item[Single linkage]: cluster by using minimum distance between points in the two clusters
+              \begin{align}
+               d(C_i,C_j)= \min_{x\in C_i, x' \in C_j} d(x,x')
+              \end{align}
+              \begin{itemize}
+               \item Equivalent to minimum spanning tree
+               \item Can set a threshold and stop clustering once the distance between clusters is above the threshold
+               \item Single linkage tends to produce \underline{long, skinny clusters}
+              \end{itemize}
+       \end{description}
+ \item \textbf{Complete link}
+       \begin{description}
+        \item[Complete linkage]: cluster by using the maximum distance between points in the two clusters
+              \begin{align}
+               d(C_i, C_j) = \max_{x\in C_i, x' \in C_j} d(x,x')
+              \end{align}
+              \begin{itemize}
+               \item Clusters tend to be compact and roughly equal in diameter (\underline{tight clusters})
+               \item Favours having all the points close together
+              \end{itemize}
+       \end{description}
+ \item \textbf{Average link}
+       \begin{description}
+        \item[Average linkage]: cluster by using the average distance between points in the two clusters
+              \begin{align}
+               d(C_i, C_j) = \frac{\sum_{x\in C_i, x' \in C_j} d(x,x')}{\abs{C_i}\abs{C_j}}
+              \end{align}
+              \begin{itemize}
+               \item Average linkage is in between single-linkage and complete linkage
+               \item Robust to noise because distance does not depend on a single pair of points, unlike single and complete linkage
+              \end{itemize}
+       \end{description}
+\end{enumerate}
+
+\subsubsection{Advantages of Agglomerative Clustering}
+\begin{itemize}
+ \item Simple to implement, widespread application
+ \item Clusters have adaptive shapes
+ \item Provides a hierarchy of clusters
+ \item No need to specify number of clusters in an image
+\end{itemize}
+
+\subsubsection{Disadvantages of Agglomerative Clustering}
+\begin{itemize}
+ \item May have imbalanced clusters
+ \item Still have to choose number of clusters or threshold
+ \item Does not scale well; runtime of $O(n^3)$
+ \item Can get stuck at local minima
+\end{itemize}
+
+
+\subsection{Oversegmenting Images}
+\subsubsection{Oversegmentation Problem Formulation}
+\begin{itemize}
+ \item Graph $G = (V,E)$
+ \item $V$ is a set of nodes (i.e. pixels)
+ \item $E$ is a set of undirected edges between pairs of pixels
+ \item $w(V_i, V_j)$ is the weight of a edge between nodes $V_i$ and $V_j$
+ \item $S$ is a segmentation of a graph $G$ s.t. $G' = (V,E')$ where $E' \subset E$
+ \item i.e. $S$ divides $G$ into $G'$ s.t. it contains distinct clusters $C$
+\end{itemize}
+
+\subsubsection{Predicate for Segmentation}
+\begin{itemize}
+ \item Predicate $D$ determiens whether there is a boudnary for segmentation
+       \begin{align}
+        \merge(C_1, C_2) = \begin{cases}
+         True  & \text{ if } \dif(C_1, C_2) < \ini(C_1, C_2) \\
+         False & otherwise
+        \end{cases}
+       \end{align}
+ \item Where $\dif(C_1, C_2)$ is the difference between 2 clusters and $\ini(C_1,C_2)$ is the internal difference in the clusters $C_1$ and $C_2$
+       \begin{align}
+        \dif(C_1, C_2) = \min_{V_i \in C_1, V_j \in C_2, (C_1, C_2) \in E} w(V_i, V_j)
+       \end{align}
+ \item The difference between 2 components is the minimum weight edge that connects a node $V_i$ in cluster $C_1$ to node $V_j$ in $C_2$
+       \begin{align}
+        \ini(C_1,C_2) = \max_{C \in (C_1, C_2)} \bigg[ \min_{V_i,V_j \in C}\bigg[ w(V_i, V_j) \bigg] \bigg]
+       \end{align}
+ \item $\ini(C_1, C_2)$ is the maximum weight edge that contains 2 nodes in the same component
+ \item $\frac{k}{\abs{C}}$ sets the threshold by which components need to be different from the internal nodes in a component
+ \item Properties of a constant $k$
+       \begin{itemize}
+        \item If $k$ is large, it causes a preference of larger objects
+        \item $k$ does not set a minimum size for components
+       \end{itemize}
+\end{itemize}
+
+\subsection{Features and Weights}
+\begin{itemize}
+ \item Project every pixel into feature space defined by $(x,y,r,g,b)$
+ \item Every pixel is connected to its neighbouring pixels and the weights are determined by the difference in intensities
+ \item Weights between pixels are determined using L2 (Euclidean) distance in feature space
+ \item Edges are closer for only top ten nearest neighbours in feature space to ensure the runtime of $O(n \log n)$ where $n$ is the number of pixels
 \end{itemize}
 
 
